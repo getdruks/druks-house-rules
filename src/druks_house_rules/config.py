@@ -1,15 +1,16 @@
-"""The ``druks-house-rules.toml`` a repository keeps in its root."""
+"""The ``.druks/house_rules/config.yml`` a repository keeps."""
 
 import dataclasses
 import pathlib
 import re
-import tomllib
 from collections.abc import Mapping
+
+import yaml
 
 from druks_house_rules import globs
 from druks_house_rules.exceptions import ConfigError
 
-FILENAME = "druks-house-rules.toml"
+FILENAME = ".druks/house_rules/config.yml"
 
 RULES = {
     "R14": "private links",
@@ -70,8 +71,8 @@ class Config:
 def load(root: pathlib.Path) -> Config:
     path = root / FILENAME
     if not path.is_file():
-        raise ConfigError(f"{path} is missing. Add it to the repository root.")
-    table = tomllib.loads(path.read_text())
+        raise ConfigError(f"{path} is missing. Add it.")
+    table = yaml.safe_load(path.read_text()) or {}
     _only_keys(table, {"rules", "exclude", "exceptions", "R21", "R16"}, FILENAME)
     rules = tuple(table.get("rules", RULES))
     for rule in rules:
@@ -80,7 +81,7 @@ def load(root: pathlib.Path) -> Config:
     exceptions = {}
     for rule, paths in table.get("exceptions", {}).items():
         if rule not in RULES:
-            raise ConfigError(f"{FILENAME}: [exceptions] names unknown rule {rule!r}.")
+            raise ConfigError(f"{FILENAME}: exceptions names unknown rule {rule!r}.")
         exceptions[rule] = tuple(globs.compile_glob(glob) for glob in paths)
     return Config(
         rules=rules,
@@ -96,20 +97,20 @@ def _import_direction(table: Mapping, rules: tuple[str, ...]) -> ImportDirection
         return None
     section = table.get("R16")
     if not section:
-        raise ConfigError(f"{FILENAME}: R16 runs but [R16] is missing. Add it or drop R16.")
+        raise ConfigError(f"{FILENAME}: R16 runs but the R16 key is missing. Add it or drop R16.")
     _only_keys(
         section,
         {"root", "package", "author_surface", "public", "apps", "ignore_imports"},
-        "[R16]",
+        "R16",
     )
     for key in ("root", "package", "author_surface", "public", "apps"):
         if key not in section:
-            raise ConfigError(f"{FILENAME}: [R16] needs {key}.")
+            raise ConfigError(f"{FILENAME}: R16 needs {key}.")
     ignore_imports = []
     for entry in section.get("ignore_imports", []):
         importer, arrow, imported = entry.partition(" -> ")
         if not arrow:
-            raise ConfigError(f"{FILENAME}: [R16] ignore_imports entry {entry!r} needs ' -> '.")
+            raise ConfigError(f"{FILENAME}: R16 ignore_imports entry {entry!r} needs ' -> '.")
         ignore_imports.append(
             (globs.compile_glob(importer, "."), globs.compile_glob(imported, "."))
         )

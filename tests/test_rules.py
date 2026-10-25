@@ -108,7 +108,7 @@ def test_exceptions_and_exclude(repository, capsys):
     repository.add_tree(conftest.FIXTURES / "rule-2" / "fail")
     repository.add_tree(conftest.FIXTURES / "R14" / "fail")
     repository.configure(
-        ["rule-2", "R14"], extra='exclude = ["README.md"]\n[exceptions]\nrule-2 = ["routes.py"]\n'
+        ["rule-2", "R14"], extra="exclude: [README.md]\nexceptions:\n  rule-2: [routes.py]\n"
     )
     repository.commit()
     assert run(repository, capsys=capsys) == (0, [])
@@ -126,4 +126,4 @@ def test_base_reads_only_the_changed_files(repository, capsys):
 def test_missing_config(repository, capsys):
     repository.commit()
     assert cli.main(["check", str(repository.root)]) == 2
-    assert "druks-house-rules.toml" in capsys.readouterr().err
+    assert ".druks/house_rules/config.yml" in capsys.readouterr().err
