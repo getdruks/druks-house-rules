@@ -2,8 +2,8 @@
 
 import pathlib
 
-from druks_house_rules import changes
-from druks_house_rules.findings import Finding
+from . import changes
+from .findings import Finding
 
 MECHANISM_NAMES = frozenset({"deps.py", "helpers.py", "utils.py", "common.py", "misc.py"})
 

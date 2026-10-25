@@ -5,8 +5,8 @@ import pathlib
 import subprocess
 import sys
 
-from druks_house_rules import changes
-from druks_house_rules.findings import Finding
+from . import changes
+from .findings import Finding
 
 CODES = {
     "RET501": "rule-1",

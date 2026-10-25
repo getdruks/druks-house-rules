@@ -1,0 +1,12 @@
+{
+  "name": "druks-house-rules",
+  "owner": { "name": "Druks" },
+  "description": "The house rules every Druks repository holds a change to, as Claude Code hooks.",
+  "plugins": [
+    {
+      "name": "druks-house-rules",
+      "source": "./",
+      "description": "Holds every edit, command, plan, and stop in a Druks repository to the house rules."
+    }
+  ]
+}

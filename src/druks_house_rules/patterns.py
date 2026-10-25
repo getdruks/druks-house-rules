@@ -10,9 +10,9 @@ import shutil
 import subprocess
 import sys
 
-from druks_house_rules import changes
-from druks_house_rules.exceptions import HouseRulesError
-from druks_house_rules.findings import Finding
+from . import changes
+from .exceptions import HouseRulesError
+from .findings import Finding
 
 PATTERNS = pathlib.Path(__file__).parent / "patterns"
 

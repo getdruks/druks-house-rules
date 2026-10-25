@@ -1,0 +1,17 @@
+#!/bin/sh
+# Runs the druks-house-rules CLI of this plugin version from a virtual environment
+# under the plugin's data directory. The first run of a version installs it.
+set -eu
+venv="${CLAUDE_PLUGIN_DATA:?}/venv"
+version=$(sed -n 's/^version = "\(.*\)"/\1/p' "${CLAUDE_PLUGIN_ROOT:?}/pyproject.toml")
+if [ ! -x "$venv/bin/druks-house-rules" ] || [ "$(cat "$venv/plugin-version" 2>/dev/null)" != "$version" ]; then
+  if ! command -v uv >/dev/null; then
+    echo "druks-house-rules: uv is missing; install it from https://docs.astral.sh/uv/" >&2
+    exit 1
+  fi
+  rm -rf "$venv"
+  uv venv --quiet --python ">=3.11" "$venv"
+  uv pip install --quiet --python "$venv/bin/python" "$CLAUDE_PLUGIN_ROOT"
+  printf '%s\n' "$version" > "$venv/plugin-version"
+fi
+exec "$venv/bin/druks-house-rules" "$@"

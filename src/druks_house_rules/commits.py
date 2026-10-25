@@ -2,8 +2,8 @@
 
 import re
 
-from druks_house_rules import changes
-from druks_house_rules.findings import Finding
+from . import changes
+from .findings import Finding
 
 TICKET = re.compile(r"^[A-Z]+-\d+")
 TICKET_SUBJECT = re.compile(r"^[A-Z]+-\d+ -- \S")

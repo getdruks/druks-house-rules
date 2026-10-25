@@ -9,5 +9,10 @@ rule:
         pattern: $MODULE
     - has:
         nthChild: 5
+    # `from . import a, b, c, d` imports modules, which is what the rule asks for.
+    - not:
+        has:
+          field: module_name
+          regex: '^\.+$'
 ignores:
   - "**/__init__.py"

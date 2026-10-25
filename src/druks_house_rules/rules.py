@@ -2,15 +2,8 @@
 
 from collections.abc import Callable
 
-from druks_house_rules import changes
-from druks_house_rules import commits
-from druks_house_rules import imports
-from druks_house_rules import modules
-from druks_house_rules import patterns
-from druks_house_rules import private_links
-from druks_house_rules import pull_request
-from druks_house_rules import ruff_rules
-from druks_house_rules.findings import Finding
+from . import changes, commits, imports, modules, patterns, private_links, pull_request, ruff_rules
+from .findings import Finding
 
 Rule = Callable[[changes.Change], list[Finding]]
 
