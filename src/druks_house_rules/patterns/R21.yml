@@ -1,0 +1,13 @@
+id: R21
+language: python
+message: four or more names from $MODULE; import the module and qualify
+rule:
+  kind: import_from_statement
+  all:
+    - has:
+        field: module_name
+        pattern: $MODULE
+    - has:
+        nthChild: 5
+ignores:
+  - "**/__init__.py"

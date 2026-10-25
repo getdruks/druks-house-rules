@@ -1,0 +1,7 @@
+id: rule-2
+language: python
+message: "use truthiness, not \"is None\"; mark a real sentinel with \"# ast-grep-ignore: rule-2\""
+rule:
+  any:
+    - pattern: $X is None
+    - pattern: $X is not None

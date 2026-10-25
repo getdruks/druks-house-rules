@@ -1,0 +1,42 @@
+[project]
+name = "druks-house-rules"
+version = "0.1.0"
+description = "The hard rules every Druks repository holds a change to, as one check."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "ast-grep-cli>=0.51.0",
+    "grimp>=3.17",
+    "ruff>=0.17",
+]
+
+[project.scripts]
+druks-house-rules = "druks_house_rules.cli:main"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/druks_house_rules"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = ["tests/fixtures"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = ["SIM108"]
+
+[tool.ruff.lint.isort]
+# R21: import the module, one line each, instead of a list of names.
+force-single-line = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
