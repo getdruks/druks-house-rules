@@ -11,5 +11,3 @@ jobs:
     uses: getdruks/druks-workflows/.github/workflows/house-rules.yml@v1
     with:
       ref: ${{ github.event.pull_request.head.sha }}
-    secrets:
-      token: ${{ secrets.GITHUB_TOKEN }}

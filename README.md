@@ -10,8 +10,6 @@ repository's `.druks/software_factory/review.md` and the Druks reviewer applies 
 uv pip install "git+https://github.com/getdruks/druks-house-rules@v0.1.0"
 ```
 
-The repository is private. In CI, pass a token with read access to it.
-
 ## Check a change
 
 ```bash
