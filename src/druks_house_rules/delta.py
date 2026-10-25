@@ -1,0 +1,181 @@
+"""The surface a branch adds against its base.
+
+New modules, classes, public functions, settings keys, columns, migrations,
+dependencies, ``try/except`` blocks, and optional parameters, plus the ratio
+of added test lines to added source lines. Each item is a question for the
+author: which existing primitive does this, or why is it needed.
+"""
+
+import ast
+import dataclasses
+import pathlib
+import re
+import tomllib
+
+from druks_house_rules import changes
+
+COLUMN_CALLS = frozenset({"mapped_column", "Column"})
+DEPENDENCY_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*")
+MIGRATION = re.compile(r"(^|/)migrations/versions/[^/]+\.py$")
+TEST_PATH = re.compile(r"(^|/)tests?/|(^|/)test_[^/]*\.py$|_test\.py$")
+
+
+@dataclasses.dataclass(frozen=True, order=True)
+class Item:
+    path: str
+    line: int
+    kind: str
+    name: str
+
+    def __str__(self) -> str:
+        return f"{self.path}:{self.line} {self.kind} {self.name}"
+
+
+def surface(change: changes.Change) -> list[Item]:
+    items = []
+    for path in change.added_files:
+        if TEST_PATH.search(path):
+            continue
+        if path.endswith(".py") and not MIGRATION.search(path):
+            items.append(Item(path, 1, "module", _module_name(path)))
+        if MIGRATION.search(path):
+            items.append(Item(path, 1, "migration", pathlib.PurePosixPath(path).name))
+    for module in change.modules:
+        if TEST_PATH.search(module.path):
+            continue
+        before = change.checkout.file_at(change.base_commit, module.path)
+        base_keys = _keys(ast.parse(before)) if before else set()
+        for key, item in _keys_with_lines(module).items():
+            if key not in base_keys:
+                items.append(Item(module.path, item[0], item[1], item[2]))
+    items.extend(_dependencies(change))
+    return sorted(items)
+
+
+def ratio(change: changes.Change) -> str:
+    """One line: added test lines against added source lines, Python only."""
+    tests = source = 0
+    for path, count in change.checkout.added_lines(change.base_commit).items():
+        if not path.endswith(".py") or change.config.excluded(path):
+            continue
+        if TEST_PATH.search(path):
+            tests += count
+        else:
+            source += count
+    value = f"{tests / source:.2f}" if source else "n/a"
+    return f"tests/source ratio {value} ({tests} test lines, {source} source lines)"
+
+
+def _module_name(path: str) -> str:
+    parts = pathlib.PurePosixPath(path).with_suffix("").parts
+    if parts[-1] == "__init__":
+        parts = parts[:-1]
+    return ".".join(parts)
+
+
+def _keys(tree: ast.Module) -> set[tuple[str, str]]:
+    return set(_walk(tree, ""))
+
+
+def _keys_with_lines(module: changes.Module) -> dict[tuple[str, str], tuple[int, str, str]]:
+    keys = {}
+    for node, kind, name in _walk_with_nodes(module.tree, ""):
+        keys.setdefault((kind, name), (node.lineno, kind, name))
+    return keys
+
+
+def _walk(tree: ast.Module, prefix: str):
+    for _, kind, name in _walk_with_nodes(tree, prefix):
+        yield kind, name
+
+
+def _walk_with_nodes(tree: ast.AST, prefix: str):
+    """Yield (node, kind, name) for every surface item under the tree."""
+    for node in ast.iter_child_nodes(tree):
+        if isinstance(node, ast.ClassDef):
+            qualname = f"{prefix}{node.name}"
+            yield node, "class", qualname
+            yield from _fields(node, qualname)
+            yield from _walk_with_nodes(node, f"{qualname}.")
+        elif isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef):
+            qualname = f"{prefix}{node.name}"
+            if not node.name.startswith("_"):
+                yield node, "function", qualname
+            yield from _optional_parameters(node, qualname)
+            yield from _walk_with_nodes(node, f"{qualname}.")
+        elif isinstance(node, ast.Try):
+            handlers = ", ".join(
+                ast.unparse(handler.type) if handler.type else "bare" for handler in node.handlers
+            )
+            yield node, "try/except", f"{prefix.rstrip('.') or '<module>'} except {handlers}"
+            yield from _walk_with_nodes(node, prefix)
+        else:
+            yield from _walk_with_nodes(node, prefix)
+
+
+def _fields(node: ast.ClassDef, qualname: str):
+    for statement in node.body:
+        if not isinstance(statement, ast.AnnAssign) or not isinstance(statement.target, ast.Name):
+            continue
+        field = statement.target.id
+        if node.name.endswith("Settings"):
+            yield statement, "setting", f"{qualname}.{field}"
+        if isinstance(statement.value, ast.Call) and _call_name(statement.value) in COLUMN_CALLS:
+            yield statement, "column", f"{qualname}.{field}"
+
+
+def _optional_parameters(node: ast.FunctionDef | ast.AsyncFunctionDef, qualname: str):
+    arguments = node.args
+    positional = arguments.posonlyargs + arguments.args
+    for argument, default in zip(
+        positional[len(positional) - len(arguments.defaults) :], arguments.defaults, strict=True
+    ):
+        yield argument, "optional-parameter", f"{qualname}({argument.arg}={ast.unparse(default)})"
+    for argument, default in zip(arguments.kwonlyargs, arguments.kw_defaults, strict=True):
+        if default:
+            yield (
+                argument,
+                "optional-parameter",
+                f"{qualname}({argument.arg}={ast.unparse(default)})",
+            )
+
+
+def _call_name(node: ast.Call) -> str:
+    if isinstance(node.func, ast.Name):
+        return node.func.id
+    if isinstance(node.func, ast.Attribute):
+        return node.func.attr
+    return ""
+
+
+def _dependencies(change: changes.Change) -> list[Item]:
+    if "pyproject.toml" not in change.files:
+        return []
+    text = change.checkout.read("pyproject.toml")
+    before = change.checkout.file_at(change.base_commit, "pyproject.toml") or ""
+    base_names = {_dependency_name(entry) for entry in _dependency_entries(before)}
+    items = []
+    lines = text.splitlines()
+    for entry in _dependency_entries(text):
+        name = _dependency_name(entry)
+        if name in base_names:
+            continue
+        line = next((number for number, row in enumerate(lines, start=1) if entry in row), 1)
+        items.append(Item("pyproject.toml", line, "dependency", name))
+    return items
+
+
+def _dependency_entries(text: str) -> list[str]:
+    table = tomllib.loads(text)
+    project = table.get("project", {})
+    entries = list(project.get("dependencies", []))
+    for group in project.get("optional-dependencies", {}).values():
+        entries.extend(group)
+    for group in table.get("dependency-groups", {}).values():
+        entries.extend(entry for entry in group if not isinstance(entry, dict))
+    return entries
+
+
+def _dependency_name(entry: str) -> str:
+    match = DEPENDENCY_NAME.match(entry)
+    return match.group(0).lower() if match else entry

@@ -1,0 +1,9 @@
+id: rule-3
+language: python
+message: isinstance guard on a value our own code produced; read it directly
+rule:
+  pattern: isinstance($$$ARGUMENTS)
+ignores:
+  - "**/webhooks/**"
+  - "**/apis/**"
+  - "**/harnesses/**"

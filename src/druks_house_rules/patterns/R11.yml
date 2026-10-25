@@ -1,0 +1,52 @@
+id: R11
+language: python
+message: step $NAME only calls plumbing; drop the step
+utils:
+  plumbing-call:
+    any:
+      - kind: expression_statement
+        has:
+          any:
+            - pattern: $FUNCTION($$$)
+            - pattern: await $FUNCTION($$$)
+      - pattern: return $FUNCTION($$$)
+      - pattern: return await $FUNCTION($$$)
+  docstring:
+    kind: expression_statement
+    has:
+      kind: string
+constraints:
+  FUNCTION:
+    regex: '(^|\.)(enqueue|set_run_phase)$|^(logger|log|logging)\.\w+$'
+rule:
+  kind: function_definition
+  inside:
+    kind: decorated_definition
+    has:
+      kind: decorator
+      regex: '^@step($|\()'
+  all:
+    - has:
+        field: name
+        pattern: $NAME
+    - has:
+        field: body
+        kind: block
+        any:
+          - all:
+              - has:
+                  nthChild: 1
+                  matches: plumbing-call
+              - not:
+                  has:
+                    nthChild: 2
+          - all:
+              - has:
+                  nthChild: 1
+                  matches: docstring
+              - has:
+                  nthChild: 2
+                  matches: plumbing-call
+              - not:
+                  has:
+                    nthChild: 3

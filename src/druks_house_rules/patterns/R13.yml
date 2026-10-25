@@ -1,0 +1,23 @@
+id: R13
+language: python
+message: $NAME is sync; make it async
+files:
+  - "**/workflows.py"
+  - "**/services.py"
+  - "**/tasks.py"
+rule:
+  kind: function_definition
+  has:
+    field: name
+    pattern: $NAME
+  not:
+    any:
+      - regex: '^async '
+      - has:
+          field: name
+          regex: '^__\w+__$'
+      - inside:
+          kind: decorated_definition
+          has:
+            kind: decorator
+            regex: '^@(classmethod|property|staticmethod|\w+\.setter)$'
