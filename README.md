@@ -7,7 +7,7 @@ repository's `.druks/software_factory/review.md` and the Druks reviewer applies 
 ## Install
 
 ```bash
-uv pip install "git+https://github.com/getdruks/druks-house-rules@v0.1.0"
+uv pip install "git+https://github.com/getdruks/druks-house-rules@v0.0.1"
 ```
 
 ## Check a change
