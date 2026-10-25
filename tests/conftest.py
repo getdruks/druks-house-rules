@@ -10,9 +10,6 @@ CONFIG = """
 rules = {rules}
 {extra}
 
-[R14]
-words = ["linkedin", "notion.com", "linear.app", "portal"]
-
 [R16]
 root = "."
 package = "pkg"
