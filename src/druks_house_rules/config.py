@@ -12,7 +12,7 @@ from druks_house_rules.exceptions import ConfigError
 FILENAME = "druks-house-rules.toml"
 
 RULES = {
-    "R14": "denylist",
+    "R14": "private links",
     "R28": "commits",
     "R27": "pull request body",
     "rule-3": "guards",
@@ -57,7 +57,6 @@ class Config:
     rules: tuple[str, ...]
     exclude: tuple[re.Pattern[str], ...]
     exceptions: Mapping[str, tuple[re.Pattern[str], ...]]
-    denylist: tuple[str, ...]
     import_modules: tuple[str, ...]
     import_direction: ImportDirection | None
 
@@ -73,7 +72,7 @@ def load(root: pathlib.Path) -> Config:
     if not path.is_file():
         raise ConfigError(f"{path} is missing. Add it to the repository root.")
     table = tomllib.loads(path.read_text())
-    _only_keys(table, {"rules", "exclude", "exceptions", "R14", "R21", "R16"}, FILENAME)
+    _only_keys(table, {"rules", "exclude", "exceptions", "R21", "R16"}, FILENAME)
     rules = tuple(table.get("rules", RULES))
     for rule in rules:
         if rule not in RULES:
@@ -87,19 +86,9 @@ def load(root: pathlib.Path) -> Config:
         rules=rules,
         exclude=tuple(globs.compile_glob(glob) for glob in table.get("exclude", [])),
         exceptions=exceptions,
-        denylist=_denylist(table, rules),
         import_modules=("typing", *table.get("R21", {}).get("modules", [])),
         import_direction=_import_direction(table, rules),
     )
-
-
-def _denylist(table: Mapping, rules: tuple[str, ...]) -> tuple[str, ...]:
-    if "R14" not in rules:
-        return ()
-    words = table.get("R14", {}).get("words")
-    if not words:
-        raise ConfigError(f"{FILENAME}: R14 runs but [R14] has no words. Add words = [...].")
-    return tuple(words)
 
 
 def _import_direction(table: Mapping, rules: tuple[str, ...]) -> ImportDirection | None:

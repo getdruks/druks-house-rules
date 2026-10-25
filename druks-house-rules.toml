@@ -2,11 +2,8 @@ rules = ["R14", "R28", "R27", "rule-3", "rule-2", "rule-1", "R21", "R23", "R5", 
 
 exclude = ["tests/fixtures/**", "uv.lock"]
 
-[R14]
-words = ["linkedin", "twitter", "x-me", "clinic", "notion.com", "linear.app", "is_managed", "druks-cloud", "portal"]
-
 [exceptions]
-# The README and the tests show the word list a repository configures.
-R14 = ["README.md", "tests/**"]
+# The tests hold the links the rule must find.
+R14 = ["tests/**"]
 # delta.py reads syntax trees of other repositories' files: a trust boundary.
 rule-3 = ["src/druks_house_rules/delta.py"]

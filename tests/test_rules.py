@@ -87,16 +87,21 @@ def test_R27_pull_request_body(repository, capsys, verdict):
         assert lines == [
             "pr-body:3 R27 section '## Verification'; drop it",
             "pr-body:7 R27 section '## Risk'; drop it",
-            "pr-body:9 R27 line: Low. Plan: https://linear.app/druks/issue/DRU-912",
         ]
 
 
-def test_R14_pull_request_text(repository, capsys):
+def test_R14_pull_request_text_and_commits(repository, capsys):
     repository.configure(["R14"])
     repository.commit()
-    code, lines = run(repository, "--pr-title", "Show the portal", capsys=capsys)
+    repository.commit("DRU-1 -- Add notes\n\nPlan: https://www.notion.so/druks/Notes-3f28f4a389cc")
+    title = "DRU-1 -- Add notes, see https://linear.app/druks/issue/DRU-1"
+    code, lines = run(repository, "--base", "main~1", "--pr-title", title, capsys=capsys)
     assert code == 1
-    assert lines == ['pr-title:1 R14 "portal" is on the denylist; remove it']
+    assert [line.split(":", 1)[0] for line in lines] == ["commit", "pr-title"]
+    assert [line.split(" R14 ")[1] for line in lines] == [
+        "link to a Notion page; keep it private",
+        "link to a Linear ticket; keep it private",
+    ]
 
 
 def test_exceptions_and_exclude(repository, capsys):

@@ -42,9 +42,9 @@ checklist. `R<n>` is rule `n` of the rules the corrections added.
 
 | Id | Rule | How |
 | --- | --- | --- |
-| R14 | No word from the repository's denylist in code, docs, or pull request text. | `[R14] words` in the configuration. Case does not matter. |
+| R14 | No link to a Notion page or a Linear ticket in the repository, the commits, or the pull request text. | `linear.app/<workspace>/issue/`, `notion.so/`, and `notion.com/p/` URLs. Service hosts such as `api.linear.app` pass. |
 | R28 | One commit above the base. A subject that starts with a ticket is `<ticket> -- <what the change does>`. No attribution trailer, no pull request number. | `git log` above the merge base. |
-| R27 | The pull request body says what the change is and its mechanism. No verification, test, or risk section, no plan links, no attribution. | `--pr-body-file`. |
+| R27 | The pull request body says what the change is and its mechanism. No verification, test, or risk section, no attribution. | `--pr-body-file`. |
 | rule-3 | `isinstance` only at a trust boundary. | Paths under `webhooks/`, `apis/`, or `harnesses/` are boundaries. Add others as exceptions. |
 | rule-2 | Truthiness, never `is None`. | Mark a line where `None` is a distinct value with `# ast-grep-ignore: rule-2`. |
 | rule-1 | Bare `return`, never `return None`. | ruff `RET501`. |
@@ -75,9 +75,6 @@ rules = ["R14", "R28", "R27", "rule-3", "rule-2", "rule-1", "R21", "R23", "R5", 
 
 # Paths no rule reads. `*` stays inside one directory, `**` crosses directories.
 exclude = ["uv.lock", "frontend/package-lock.json", "backend/druks/migrations/versions/**"]
-
-[R14]
-words = ["linkedin", "twitter", "x-me", "clinic", "notion.com", "linear.app", "is_managed", "druks-cloud", "portal"]
 
 [R21]
 # Modules whose names a file may import in bulk, beside `typing`.
