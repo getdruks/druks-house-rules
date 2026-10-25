@@ -62,6 +62,28 @@ the pull request, and git.
 Every rule has a positive and a negative fixture in `tests/fixtures/<rule>/`.
 The test suite runs each through the CLI.
 
+## Run in CI
+
+One job calls the reusable workflow in `getdruks/druks-workflows`. It installs
+this package, checks out the pull request with its history, and runs the check
+with the pull request title and body.
+
+```yaml
+name: House rules
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  house-rules:
+    uses: getdruks/druks-workflows/.github/workflows/house-rules.yml@v1
+```
+
+The `ref` input picks the package version, a tag such as `v0.0.1`.
+
 ## Configure a repository
 
 Put `druks-house-rules.toml` in the repository root. Keys other than these fail
