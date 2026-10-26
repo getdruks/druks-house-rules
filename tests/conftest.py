@@ -7,15 +7,15 @@ import pytest
 FIXTURES = pathlib.Path(__file__).parent / "fixtures"
 
 CONFIG = """
-rules = {rules}
+rules: {rules}
 {extra}
 
-[R16]
-root = "."
-package = "pkg"
-author_surface = ["pkg.workflows", "pkg.db"]
-public = ["pkg.workflows", "pkg.db"]
-apps = ["pkg.contrib"]
+R16:
+  root: "."
+  package: pkg
+  author_surface: [pkg.workflows, pkg.db]
+  public: [pkg.workflows, pkg.db]
+  apps: [pkg.contrib]
 """
 
 
@@ -35,10 +35,11 @@ class Repository:
         ).stdout
 
     def configure(self, rules: list[str], extra: str = "") -> None:
-        """Write the configuration; ``extra`` is TOML placed before the rule tables."""
-        rules_toml = "[" + ", ".join(f'"{rule}"' for rule in rules) + "]"
-        (self.root / "druks-house-rules.toml").write_text(
-            CONFIG.format(rules=rules_toml, extra=extra)
+        """Write the configuration; ``extra`` is YAML placed before the R16 key."""
+        rules_yaml = "[" + ", ".join(f'"{rule}"' for rule in rules) + "]"
+        (self.root / ".druks" / "house_rules").mkdir(parents=True, exist_ok=True)
+        (self.root / ".druks" / "house_rules" / "config.yml").write_text(
+            CONFIG.format(rules=rules_yaml, extra=extra)
         )
 
     def add_tree(self, fixture: pathlib.Path) -> None:

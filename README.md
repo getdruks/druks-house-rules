@@ -7,7 +7,7 @@ repository's `.druks/software_factory/review.md` and the Druks reviewer applies 
 ## Install
 
 ```bash
-uv pip install "git+https://github.com/getdruks/druks-house-rules@v0.0.1"
+uv pip install "git+https://github.com/getdruks/druks-house-rules@v0.0.2"
 ```
 
 ## Check a change
@@ -52,7 +52,7 @@ checklist. `R<n>` is rule `n` of the rules the corrections added.
 | R13 | Every function in `workflows.py`, `services.py`, and `tasks.py` is async. | Class methods, static methods, properties, setters, and dunder methods stay sync. |
 | R11 | A `@step` marks a replay checkpoint. | A step whose body is one call to `enqueue`, a logger, or `set_run_phase` fails. |
 | R25 | No module named `deps`, `helpers`, `utils`, `common`, or `misc`. | Added files with `--base`; all tracked files without. |
-| R16 | Author-surface modules never import an app. Apps import only the public modules. | `[R16]` in the configuration. |
+| R16 | Author-surface modules never import an app. Apps import only the public modules. | The `R16` key in the configuration. |
 
 rule-2, rule-3, R21, R13, and R11 are ast-grep rules, one YAML file each in
 `src/druks_house_rules/patterns/`. rule-1, R23, and R5 are ruff rules. R16
@@ -82,37 +82,38 @@ jobs:
     uses: getdruks/druks-workflows/.github/workflows/house-rules.yml@v1
 ```
 
-The `ref` input picks the package version, a tag such as `v0.0.1`.
+The `ref` input picks the package version, a tag such as `v0.0.2`.
 
 ## Configure a repository
 
-Put `druks-house-rules.toml` in the repository root. Keys other than these fail
-the check.
+Put `.druks/house_rules/config.yml` in the repository. An app owns
+`.druks/<app>/`, and repository files under `.druks/` are YAML. Keys other than
+these fail the check.
 
-```toml
+```yaml
 # The rules to run. Without this key, every rule runs.
-rules = ["R14", "R28", "R27", "rule-3", "rule-2", "rule-1", "R21", "R23", "R5", "R13", "R11", "R25", "R16"]
+rules: [R14, R28, R27, rule-3, rule-2, rule-1, R21, R23, R5, R13, R11, R25, R16]
 
 # Paths no rule reads. `*` stays inside one directory, `**` crosses directories.
-exclude = ["uv.lock", "frontend/package-lock.json", "backend/druks/migrations/versions/**"]
+exclude: [uv.lock, frontend/package-lock.json, backend/druks/migrations/versions/**]
 
-[R21]
-# Modules whose names a file may import in bulk, beside `typing`.
-modules = ["fastapi", "sqlalchemy", "pydantic"]
+R21:
+  # Modules whose names a file may import in bulk, beside `typing`.
+  modules: [fastapi, sqlalchemy, pydantic]
 
-[R16]
-root = "backend"
-package = "druks"
-author_surface = ["druks.workflows", "druks.workspaces", "druks.agents", "druks.events", "druks.signals", "druks.db", "druks.schemas", "druks.prompts", "druks.durable", "druks.apps", "druks.ui", "druks.webhooks"]
-public = ["druks.workflows", "druks.workspaces", "druks.agents", "druks.events", "druks.signals", "druks.db", "druks.schemas", "druks.prompts", "druks.durable", "druks.apps", "druks.ui", "druks.webhooks", "druks.core", "druks.chat"]
-apps = ["druks.contrib"]
-# Imports the contract tolerates, as `importer -> imported` module globs.
-ignore_imports = ["druks.contrib.** -> druks.accounts.**"]
+R16:
+  root: backend
+  package: druks
+  author_surface: [druks.workflows, druks.workspaces, druks.agents, druks.events, druks.signals, druks.db, druks.schemas, druks.prompts, druks.durable, druks.apps, druks.ui, druks.webhooks]
+  public: [druks.workflows, druks.workspaces, druks.agents, druks.events, druks.signals, druks.db, druks.schemas, druks.prompts, druks.durable, druks.apps, druks.ui, druks.webhooks, druks.core, druks.chat]
+  apps: [druks.contrib]
+  # Imports the contract tolerates, as `importer -> imported` module globs.
+  ignore_imports: ["druks.contrib.** -> druks.accounts.**"]
 
 # Paths a rule does not read, by rule id.
-[exceptions]
-rule-3 = ["backend/druks/settings.py"]
-R13 = ["backend/druks/workflows.py"]
+exceptions:
+  rule-3: [backend/druks/settings.py]
+  R13: [backend/druks/workflows.py]
 ```
 
 ## Print the surface a change adds
