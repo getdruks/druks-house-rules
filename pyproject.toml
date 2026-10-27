@@ -35,9 +35,5 @@ extend-exclude = ["tests/fixtures"]
 select = ["E", "F", "I", "UP", "B", "SIM"]
 ignore = ["SIM108"]
 
-[tool.ruff.lint.isort]
-# R21: import the module, one line each, instead of a list of names.
-force-single-line = true
-
 [tool.pytest.ini_options]
 testpaths = ["tests"]

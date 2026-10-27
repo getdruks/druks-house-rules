@@ -12,7 +12,7 @@ import pathlib
 import re
 import tomllib
 
-from druks_house_rules import changes
+from . import changes
 
 COLUMN_CALLS = frozenset({"mapped_column", "Column"})
 DEPENDENCY_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*")

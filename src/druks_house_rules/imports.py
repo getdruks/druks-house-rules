@@ -5,8 +5,8 @@ import sys
 
 import grimp
 
-from druks_house_rules import changes
-from druks_house_rules.findings import Finding
+from . import changes
+from .findings import Finding
 
 
 def check(change: changes.Change) -> list[Finding]:

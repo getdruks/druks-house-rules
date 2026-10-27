@@ -5,8 +5,7 @@ import dataclasses
 import functools
 import pathlib
 
-from druks_house_rules import checkout
-from druks_house_rules import config
+from . import checkout, config
 
 
 @dataclasses.dataclass(frozen=True)
@@ -31,7 +30,8 @@ class Change:
 
     With a base, the files are the ones the working tree changes against the
     merge base and the commits are the ones above it. Without a base, the files
-    are every tracked file and there are no commits.
+    are every tracked file and there are no commits. With ``paths``, the files
+    are those paths alone, as one edit under check.
     """
 
     def __init__(
@@ -40,16 +40,21 @@ class Change:
         settings: config.Config,
         base: str | None,
         pull_request: PullRequest | None,
+        paths: list[str] | None = None,
     ) -> None:
         self.root = root
         self.config = settings
         self.checkout = checkout.Checkout(root)
+        self.base = base
         self.base_commit = self.checkout.merge_base(base) if base else None
         self.pull_request = pull_request
+        self.paths = paths
 
     @functools.cached_property
     def files(self) -> list[str]:
-        if self.base_commit:
+        if self.paths:
+            files = self.paths
+        elif self.base_commit:
             files = self.checkout.changed_files(self.base_commit)
         else:
             files = self.checkout.tracked_files()
@@ -57,7 +62,9 @@ class Change:
 
     @functools.cached_property
     def added_files(self) -> list[str]:
-        if self.base_commit:
+        if self.paths:
+            files = self.paths
+        elif self.base_commit:
             files = self.checkout.added_files(self.base_commit)
         else:
             files = self.checkout.tracked_files()

@@ -7,8 +7,8 @@ from collections.abc import Mapping
 
 import yaml
 
-from druks_house_rules import globs
-from druks_house_rules.exceptions import ConfigError
+from . import globs
+from .exceptions import ConfigError
 
 FILENAME = ".druks/house_rules/config.yml"
 

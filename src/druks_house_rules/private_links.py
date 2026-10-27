@@ -2,8 +2,8 @@
 
 import re
 
-from druks_house_rules import changes
-from druks_house_rules.findings import Finding
+from . import changes
+from .findings import Finding
 
 LINKS = {
     "Linear ticket": re.compile(r"https://linear\.app/[^/\s]+/issue/\S+"),

@@ -1,12 +1,10 @@
 import argparse
+import json
 import pathlib
 import sys
 
-from druks_house_rules import changes
-from druks_house_rules import config
-from druks_house_rules import delta
-from druks_house_rules import rules
-from druks_house_rules.exceptions import HouseRulesError
+from . import changes, config, delta, hooks, moves, rules
+from .exceptions import HouseRulesError
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -26,6 +24,15 @@ def main(argv: list[str] | None = None) -> int:
     )
     surface.add_argument("--base", required=True)
     surface.add_argument("root", nargs="?", type=pathlib.Path, default=pathlib.Path("."))
+    catalog = commands.add_parser(
+        "moves", help="print the moves from the repository's catalog that apply to the change"
+    )
+    catalog.add_argument("--base", required=True)
+    catalog.add_argument("root", nargs="?", type=pathlib.Path, default=pathlib.Path("."))
+    commands.add_parser(
+        "hook",
+        help="answer one Claude Code hook event: the input JSON on stdin, the output on stdout",
+    )
     arguments = parser.parse_args(argv)
     try:
         return _run(arguments)
@@ -35,6 +42,11 @@ def main(argv: list[str] | None = None) -> int:
 
 
 def _run(arguments: argparse.Namespace) -> int:
+    if arguments.command == "hook":
+        answer = hooks.run(json.load(sys.stdin))
+        if answer:
+            print(json.dumps(answer))
+        return 0
     root = arguments.root.resolve()
     settings = config.load(root)
     if arguments.command == "delta":
@@ -42,6 +54,11 @@ def _run(arguments: argparse.Namespace) -> int:
         for item in delta.surface(change):
             print(item)
         print(delta.ratio(change))
+        return 0
+    if arguments.command == "moves":
+        change = changes.Change(root, settings, arguments.base, None)
+        for finding in moves.check(change):
+            print(finding)
         return 0
     pull_request = None
     if arguments.pr_body_file or arguments.pr_title:

@@ -5,8 +5,8 @@ R14 owns the links to Notion pages and Linear tickets.
 
 import re
 
-from druks_house_rules import changes
-from druks_house_rules.findings import Finding
+from . import changes
+from .findings import Finding
 
 SECTION = re.compile(r"^#+\s*(verification|test|risk)", re.IGNORECASE)
 ATTRIBUTION = re.compile(r"co-authored-by", re.IGNORECASE)
