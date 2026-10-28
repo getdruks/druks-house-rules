@@ -1,6 +1,6 @@
 [project]
 name = "druks-house-rules"
-version = "0.0.2"
+version = "0.0.3"
 description = "The hard rules every Druks repository holds a change to, as one check."
 readme = "README.md"
 requires-python = ">=3.11"

@@ -1,4 +1,4 @@
-"""R28. One commit above the base, with a plain subject and no attribution."""
+"""R28. One commit above the base, with a plain subject and no AI attribution."""
 
 import re
 
@@ -8,7 +8,10 @@ from .findings import Finding
 TICKET = re.compile(r"^[A-Z]+-\d+")
 TICKET_SUBJECT = re.compile(r"^[A-Z]+-\d+ -- \S")
 PULL_REQUEST_NUMBER = re.compile(r"#\d+")
-ATTRIBUTION = re.compile(r"co-authored-by|claude-session|generated with|claude code", re.I)
+# A co-author line for a person passes: Druks credits the account that dispatched a run.
+ATTRIBUTION = re.compile(
+    r"co-authored-by:.*\b(claude|anthropic)\b|claude-session|generated with|claude code", re.I
+)
 
 
 def check(change: changes.Change) -> list[Finding]:

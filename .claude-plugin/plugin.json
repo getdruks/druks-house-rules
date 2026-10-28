@@ -1,6 +1,6 @@
 {
   "name": "druks-house-rules",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Holds every edit, command, plan, and stop in a Druks repository to the house rules.",
   "author": { "name": "Druks" },
   "repository": "https://github.com/getdruks/druks-house-rules",

@@ -7,7 +7,7 @@ repository's `.druks/software_factory/review.md` and the Druks reviewer applies 
 ## Install
 
 ```bash
-uv pip install "git+https://github.com/getdruks/druks-house-rules@v0.0.2"
+uv pip install "git+https://github.com/getdruks/druks-house-rules@v0.0.3"
 ```
 
 ## Check a change
@@ -41,7 +41,7 @@ checklist. `R<n>` is rule `n` of the rules the corrections added.
 | Id | Rule | How |
 | --- | --- | --- |
 | R14 | No link to a Notion page or a Linear ticket in the repository, the commits, or the pull request text. | `linear.app/<workspace>/issue/`, `notion.so/`, and `notion.com/p/` URLs. Service hosts such as `api.linear.app` pass. |
-| R28 | One commit above the base. A subject that starts with a ticket is `<ticket> -- <what the change does>`. No attribution trailer, no pull request number. | `git log` above the merge base. |
+| R28 | One commit above the base. A subject that starts with a ticket is `<ticket> -- <what the change does>`. No AI attribution and no pull request number. A co-author line for a person passes. | `git log` above the merge base. |
 | R27 | The pull request body says what the change is and its mechanism. No verification, test, or risk section, no attribution. | `--pr-body-file`. |
 | rule-3 | `isinstance` only at a trust boundary. | Paths under `webhooks/`, `apis/`, or `harnesses/` are boundaries. Add others as exceptions. |
 | rule-2 | Truthiness, never `is None`. | Mark a line where `None` is a distinct value with `# ast-grep-ignore: rule-2`. |
@@ -117,7 +117,7 @@ repository that holds `.druks/house_rules/config.yml`, every hook answers nothin
 | Hook | What it does |
 | --- | --- |
 | PostToolUse on Edit, Write, and MultiEdit | Runs the check on the edited file and returns the findings. The edit stands. |
-| PreToolUse on Bash | Denies with the rule text: R33 a `git commit` on `main`, R20 a test run piped into `tail`, `head`, or `grep`, R28 a commit message with an attribution trailer. Asks the owner before R35, a `gh pr merge` or `gh release`. |
+| PreToolUse on Bash | Denies with the rule text: R33 a `git commit` on `main`, R20 a test run piped into `tail`, `head`, or `grep`, R28 a commit message with AI attribution. Asks the owner before R35, a `gh pr merge` or `gh release`. |
 | PreToolUse on ExitPlanMode | R1: denies a plan without a `prior_art` section, or one whose section does not name a module, class, setting, column, flag, or dependency the plan adds. |
 | Stop | Holds the branch against `origin/main`: the check, the surface delta, and the moves pass. On any finding it blocks the stop once with the three lists, and lets the second stop through. |
 

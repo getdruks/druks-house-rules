@@ -27,6 +27,11 @@ from druks_house_rules import bash
             "dru-1-notes",
             ["R28"],
         ),
+        (
+            'git commit -m "DRU-1 -- Add notes\n\nCo-Authored-By: Dana <dana@example.com>"',
+            "dru-1-notes",
+            [],
+        ),
         ("git commit -m 'DRU-1 -- Add notes' && git push", "main", ["R33"]),
     ],
 )
