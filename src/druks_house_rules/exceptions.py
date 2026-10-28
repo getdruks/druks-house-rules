@@ -4,3 +4,7 @@ class HouseRulesError(Exception):
 
 class ConfigError(HouseRulesError):
     """The configuration file is missing, malformed, or names something unknown."""
+
+
+class MissingConfigError(ConfigError):
+    """The configuration file is not in the repository."""

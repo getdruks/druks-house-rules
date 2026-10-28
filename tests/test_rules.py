@@ -78,8 +78,8 @@ def test_R28_two_commits(repository, capsys):
 def test_R27_pull_request_body(repository, capsys, verdict):
     repository.configure(["R27"])
     repository.commit()
-    body = conftest.FIXTURES / "R27" / verdict / "body.md"
-    code, lines = run(repository, "--pr-body-file", str(body), capsys=capsys)
+    body = (conftest.FIXTURES / "R27" / verdict / "body.md").read_text()
+    code, lines = run(repository, "--pr-body", body, capsys=capsys)
     if verdict == "pass":
         assert (code, lines) == (0, [])
     else:
@@ -125,5 +125,5 @@ def test_base_reads_only_the_changed_files(repository, capsys):
 
 def test_missing_config(repository, capsys):
     repository.commit()
-    assert cli.main(["check", str(repository.root)]) == 2
+    assert cli.main(["check", str(repository.root)]) == 3
     assert ".druks/house_rules/config.yml" in capsys.readouterr().err

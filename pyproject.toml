@@ -1,6 +1,6 @@
 [project]
 name = "druks-house-rules"
-version = "0.0.3"
+version = "0.0.4"
 description = "The hard rules every Druks repository holds a change to, as one check."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -11,13 +11,23 @@ dependencies = [
     "ruff>=0.17",
 ]
 
+[project.optional-dependencies]
+app = ["druks"]
+
 [project.scripts]
 druks-house-rules = "druks_house_rules.cli:main"
+
+[project.entry-points."druks.apps"]
+house_rules = "druks_house_rules.app:HouseRules"
 
 [dependency-groups]
 dev = [
     "pytest>=9.1",
+    "pytest-asyncio>=1.4.0",
 ]
+
+[tool.uv.sources]
+druks = { git = "https://github.com/czpython/druks", branch = "main" }
 
 [build-system]
 requires = ["hatchling"]
@@ -37,3 +47,4 @@ ignore = ["SIM108"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+asyncio_mode = "auto"

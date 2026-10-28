@@ -7,14 +7,14 @@ repository's `.druks/software_factory/review.md` and the Druks reviewer applies 
 ## Install
 
 ```bash
-uv pip install "git+https://github.com/getdruks/druks-house-rules@v0.0.3"
+uv pip install "git+https://github.com/getdruks/druks-house-rules@v0.0.4"
 ```
 
 ## Check a change
 
 ```bash
 druks-house-rules check --base origin/main
-druks-house-rules check --base origin/main --pr-title "$TITLE" --pr-body-file body.md
+druks-house-rules check --base origin/main --pr-title "$TITLE" --pr-body "$BODY"
 druks-house-rules check
 ```
 
@@ -31,7 +31,9 @@ backend/druks/usage/routes.py:139 rule-2 use truthiness, not "is None"; mark a r
 commit:0f3a2c1d9e7b:1 R28 2 commits above the base; squash them into one
 ```
 
-It exits 2 when the configuration is missing or malformed.
+With `--json`, it prints the findings as one JSON array of `path`, `line`,
+`rule`, and `message`. It exits 2 when the configuration is malformed and 3
+when it is missing.
 
 ## Rules
 
@@ -42,7 +44,7 @@ checklist. `R<n>` is rule `n` of the rules the corrections added.
 | --- | --- | --- |
 | R14 | No link to a Notion page or a Linear ticket in the repository, the commits, or the pull request text. | `linear.app/<workspace>/issue/`, `notion.so/`, and `notion.com/p/` URLs. Service hosts such as `api.linear.app` pass. |
 | R28 | One commit above the base. A subject that starts with a ticket is `<ticket> -- <what the change does>`. No AI attribution and no pull request number. A co-author line for a person passes. | `git log` above the merge base. |
-| R27 | The pull request body says what the change is and its mechanism. No verification, test, or risk section, no attribution. | `--pr-body-file`. |
+| R27 | The pull request body says what the change is and its mechanism. No verification, test, or risk section, no attribution. | `--pr-body`. |
 | rule-3 | `isinstance` only at a trust boundary. | Paths under `webhooks/`, `apis/`, or `harnesses/` are boundaries. Add others as exceptions. |
 | rule-2 | Truthiness, never `is None`. | Mark a line where `None` is a distinct value with `# ast-grep-ignore: rule-2`. |
 | rule-1 | Bare `return`, never `return None`. | ruff `RET501`. |
@@ -76,29 +78,30 @@ the one phrase that fits an implementer's output, and the implementer finds
 the problem itself. The test suite rejects an entry that misses a field or
 names an unknown theme.
 
-## Run in CI
+## Run in Druks
 
-One job calls the reusable workflow in `getdruks/druks-workflows`. It installs
-this package, checks out the pull request with its history, and runs the check
-with the pull request title and body.
+The `app` extra ships the Druks app `house_rules`. Druks receives the pull
+request webhook of every repository the operator App is installed on. For each
+pull request opened, pushed, edited, or marked ready for review, the app runs
+the check in a sandbox VM that holds this package at the app's version and the
+repository at the pull request head, with the pull request title and body, and
+posts the check run `druks-house-rules` on the head commit: success with no
+findings, failure with one annotation per finding and the findings as the
+summary. A repository without `.druks/house_rules/config.yml` gets a neutral
+check run. One head, title, and body gets one run; a redelivered webhook posts
+nothing twice.
 
-```yaml
-name: House rules
+Install the extra in the Druks installation and build its sandbox template:
 
-on:
-  pull_request:
-    types: [opened, synchronize, reopened, edited]
-
-permissions:
-  contents: read
-  pull-requests: read
-
-jobs:
-  house-rules:
-    uses: getdruks/druks-workflows/.github/workflows/house-rules.yml@v1
+```bash
+uv pip install "druks-house-rules[app] @ git+https://github.com/getdruks/druks-house-rules@v0.0.4"
+druks init-db
+druks sandboxes build
 ```
 
-The `ref` input picks the package version, a tag such as `v0.0.2`.
+The App needs **Checks: Read and write**. To hold a repository to the rules,
+install the operator App on it, put `.druks/house_rules/config.yml` in it, and
+require the check `druks-house-rules` in its branch protection.
 
 ## Run in Claude Code
 
@@ -183,10 +186,14 @@ tests/source ratio 0.50 (6 test lines, 12 source lines)
 
 ## Develop
 
+The tests of the app need Postgres on `localhost:5432` with user and password
+`druks` and the `druks_test` database.
+
 ```bash
-uv sync
+uv sync --extra app
 uv run ruff check
 uv run ruff format --check
+uv run druks check-app house_rules
 uv run pytest
 uv run druks-house-rules check
 ```
