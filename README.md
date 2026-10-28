@@ -62,6 +62,20 @@ the pull request, and git.
 Every rule has a positive and a negative fixture in `tests/fixtures/<rule>/`.
 The test suite runs each through the CLI.
 
+## The driver pool
+
+`src/druks_house_rules/pool.yml` holds the phrases Paulo uses to correct an
+agent, one entry per phrase. An entry has `phrase` (his words, with code names
+and personal remarks removed, so the phrase steers without naming code the
+target does not have), `theme` (one of `overengineering`, `primitives`,
+`naming`, `wrong layer`, `steps`, `tests`, `imports`, `narration`, `scope`),
+`situation` (one sentence on what the agent had produced, described, not
+quoted), and `count` (how many sessions he said it in). The pool is not a
+checklist. A reviewer reads the rules above. A picker reads the pool to choose
+the one phrase that fits an implementer's output, and the implementer finds
+the problem itself. The test suite rejects an entry that misses a field or
+names an unknown theme.
+
 ## Run in CI
 
 One job calls the reusable workflow in `getdruks/druks-workflows`. It installs
