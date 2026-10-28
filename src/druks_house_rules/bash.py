@@ -2,8 +2,8 @@
 
 R33: no commit on ``main``; GitHub refuses the push. R35: a merge or a release
 waits for the owner's word, so the hook asks instead of denying. R20: no test run
-piped into ``tail``, ``head``, or ``grep``. R28: no attribution trailer in a
-commit message.
+piped into ``tail``, ``head``, or ``grep``. R28: no AI attribution in a commit
+message.
 """
 
 import shlex

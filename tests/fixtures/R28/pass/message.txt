@@ -1,3 +1,5 @@
 DRU-912 -- Add the druks-house-rules check
 
 The check runs ruff and the syntax rules over the changed files.
+
+Co-Authored-By: Dana <dana@example.com>
