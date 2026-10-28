@@ -1,10 +1,11 @@
 import argparse
+import dataclasses
 import json
 import pathlib
 import sys
 
 from . import changes, config, delta, hooks, moves, rules
-from .exceptions import HouseRulesError
+from .exceptions import HouseRulesError, MissingConfigError
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -15,9 +16,8 @@ def main(argv: list[str] | None = None) -> int:
         "--base", help="the ref to check the change against; default: the whole checkout"
     )
     check.add_argument("--pr-title", help="the pull request title")
-    check.add_argument(
-        "--pr-body-file", type=pathlib.Path, help="a file holding the pull request body"
-    )
+    check.add_argument("--pr-body", help="the pull request body")
+    check.add_argument("--json", action="store_true", help="print the findings as a JSON array")
     check.add_argument("root", nargs="?", type=pathlib.Path, default=pathlib.Path("."))
     surface = commands.add_parser(
         "delta", help="print the surface the change adds against its base"
@@ -36,6 +36,9 @@ def main(argv: list[str] | None = None) -> int:
     arguments = parser.parse_args(argv)
     try:
         return _run(arguments)
+    except MissingConfigError as error:
+        print(f"druks-house-rules: {error}", file=sys.stderr)
+        return 3
     except HouseRulesError as error:
         print(f"druks-house-rules: {error}", file=sys.stderr)
         return 2
@@ -61,11 +64,15 @@ def _run(arguments: argparse.Namespace) -> int:
             print(finding)
         return 0
     pull_request = None
-    if arguments.pr_body_file or arguments.pr_title:
-        body = arguments.pr_body_file.read_text() if arguments.pr_body_file else ""
-        pull_request = changes.PullRequest(title=arguments.pr_title or "", body=body)
+    if arguments.pr_body or arguments.pr_title:
+        pull_request = changes.PullRequest(
+            title=arguments.pr_title or "", body=arguments.pr_body or ""
+        )
     change = changes.Change(root, settings, arguments.base, pull_request)
     findings = rules.check(change)
-    for finding in findings:
-        print(finding)
+    if arguments.json:
+        print(json.dumps([dataclasses.asdict(finding) for finding in findings]))
+    else:
+        for finding in findings:
+            print(finding)
     return 1 if findings else 0

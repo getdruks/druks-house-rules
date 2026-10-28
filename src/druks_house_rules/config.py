@@ -8,7 +8,7 @@ from collections.abc import Mapping
 import yaml
 
 from . import globs
-from .exceptions import ConfigError
+from .exceptions import ConfigError, MissingConfigError
 
 FILENAME = ".druks/house_rules/config.yml"
 
@@ -71,7 +71,7 @@ class Config:
 def load(root: pathlib.Path) -> Config:
     path = root / FILENAME
     if not path.is_file():
-        raise ConfigError(f"{path} is missing. Add it.")
+        raise MissingConfigError(f"{path} is missing. Add it.")
     table = yaml.safe_load(path.read_text()) or {}
     _only_keys(table, {"rules", "exclude", "exceptions", "R21", "R16"}, FILENAME)
     rules = tuple(table.get("rules", RULES))
