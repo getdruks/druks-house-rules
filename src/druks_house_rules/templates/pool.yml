@@ -1,0 +1,757 @@
+# Paulo's driving phrases, one entry per phrase. README: "The driver pool".
+
+- id: 1
+  phrase: "this is overengineered: you added all this just so the output reads nicely, when the real result is already in the structured data. kill it"
+  theme: overengineering
+  situation: "The agent added code whose only effect is a nicer display of a result that is already stored as structured data."
+  count: 19
+- id: 2
+  phrase: "why are you adding a chain of fallbacks? read the one setting, no fallbacks, stop overcomplicating"
+  theme: overengineering
+  situation: "The agent read a value through a chain of fallback variables or defaults where one read is enough."
+  count: 1
+- id: 3
+  phrase: "this is ugly, why add a whole new method? add a parameter to the existing one"
+  theme: overengineering
+  situation: "The agent added a new method that repeats an existing one with one difference, instead of adding a parameter."
+  count: 1
+- id: 4
+  phrase: "a whole new field for this? you're gonna grow a field for every single edge case?"
+  theme: overengineering
+  situation: "The agent added a field to an output contract or a model to cover one case it saw once."
+  count: 2
+- id: 5
+  phrase: "shrink this test, you tend to overengineer: don't stage a whole race to re-prove the library's guarantee, seed the state and assert our behavior"
+  theme: tests
+  situation: "The agent wrote a long choreographed test that re-proves a guarantee of a library (a lock, a queue) instead of seeding state and asserting the code's own behavior."
+  count: 1
+- id: 6
+  phrase: "why are you calling strip() on that? our own system produced it, stop adding unnecessary safeguards"
+  theme: overengineering
+  situation: "The agent normalised (strip, lower, default) a value that our own code produced and already guarantees."
+  count: 1
+- id: 7
+  phrase: "don't you think this is overly protected? you check the type of every part of the response by hand, validate it with one model at the boundary"
+  theme: overengineering
+  situation: "The agent checked the type of each part of an external response by hand instead of validating it with one model."
+  count: 3
+- id: 8
+  phrase: "why are you catching that exception? nothing ever catches it, let it fail the run like everywhere else"
+  theme: overengineering
+  situation: "The agent caught an exception that no other code handles, to turn it into a custom outcome."
+  count: 1
+- id: 9
+  phrase: "why a new exception type for this? there is already one that means exactly that, raise it"
+  theme: primitives
+  situation: "The agent added a dedicated exception type for a failure that an existing exception type already names."
+  count: 1
+- id: 10
+  phrase: "why catch BaseException here? if it is cleanup on every exit, that's a finally"
+  theme: overengineering
+  situation: "The agent caught BaseException to run cleanup, where a try/finally says the same thing."
+  count: 1
+- id: 11
+  phrase: "no escape hatch, cut the whole thing: the override nobody reads goes, and everything that exists only for it"
+  theme: scope
+  situation: "The agent added an override setting as an escape hatch with no consumer, plus code that exists only to support it."
+  count: 1
+- id: 12
+  phrase: "kill the lock, think simple then complex: it guards a race nobody has seen, it comes back when the race bites"
+  theme: overengineering
+  situation: "The agent added a lock or a guard for a rare race that nobody has observed."
+  count: 2
+- id: 13
+  phrase: "this mechanism papers over a larger missing piece, and that piece will make it moot. drop it, keep it lean"
+  theme: overengineering
+  situation: "The agent added a stopgap mechanism (a token, a flag) that a planned larger feature will replace."
+  count: 1
+- id: 14
+  phrase: "this is overengineered: don't create or sync rows at boot for every declaration, create the row the first time it is used"
+  theme: overengineering
+  situation: "The agent added a startup step that creates or syncs database rows for declared items instead of creating each row on first use."
+  count: 1
+- id: 15
+  phrase: "makes no sense to set a var just to use it once, pass the expression to the call"
+  theme: overengineering
+  situation: "The agent assigned a value to a local variable that is read once on the next line."
+  count: 1
+- id: 16
+  phrase: "we've gone overboard with the methods, each with one caller writing the same columns. one method and an enum that says what to do"
+  theme: overengineering
+  situation: "The agent added several one-caller methods that write the same fields, where one method with an enum argument covers all of them."
+  count: 1
+- id: 17
+  phrase: "a whole db table for a single record? there is already a single-row settings table, put it there"
+  theme: overengineering
+  situation: "The agent proposed a new table that will only ever hold one row."
+  count: 1
+- id: 18
+  phrase: "why a redis cache in front of a get_or_create? that's already fast enough, drop the cache"
+  theme: overengineering
+  situation: "The agent cached in Redis the result of a database lookup that is already cheap."
+  count: 1
+- id: 19
+  phrase: "why do we write our own lock? the command we call already takes that lock, use it"
+  theme: primitives
+  situation: "The agent wrote its own locking code around a tool whose own command already takes the same lock."
+  count: 2
+- id: 20
+  phrase: "isn't it weird to add generic settings for a single provider? put them on that provider"
+  theme: wrong layer
+  situation: "The agent added service-wide settings that only one provider reads."
+  count: 1
+- id: 21
+  phrase: "we're trying to do too much and not thinking in abstractions: stop branching inline on the mode, let the class declare its kind and let the kind own the behavior"
+  theme: overengineering
+  situation: "The agent branched inline on a deployment mode (managed or self-hosted, one provider or another) where a declared kind on the class should own the difference."
+  count: 1
+- id: 22
+  phrase: "this is not that kind of row in any way, you're squatting in a table whose name means something else. walk back and rethink from the problem statement"
+  theme: wrong layer
+  situation: "The agent stored a new kind of record in an existing table whose name and purpose mean something else."
+  count: 1
+- id: 23
+  phrase: "you just changed the door but not the house: the methods only forward to functions that still take the object as an argument. move the bodies onto the class and delete the module"
+  theme: wrong layer
+  situation: "The agent wrapped module functions in methods that forward to them, while the functions still take the owning object as an argument."
+  count: 1
+- id: 24
+  phrase: "this is ugly, you're patching around the existing design instead of rethinking it. check who actually uses that hook; when nothing does, drop it"
+  theme: wrong layer
+  situation: "The agent kept a workaround to protect an existing hook or override point that, when checked, nothing uses."
+  count: 1
+- id: 25
+  phrase: "that's another column for one more variant, it's starting to smell. step back and see the whole issue: these variants want one model, not a column each"
+  theme: overengineering
+  situation: "The agent added one more column to absorb one more variant of a concept that is spread over several tables."
+  count: 1
+- id: 26
+  phrase: "remember I hate these one-off functions: put each private helper back into its one caller"
+  theme: overengineering
+  situation: "The agent extracted private helpers that each have exactly one caller."
+  count: 2
+- id: 27
+  phrase: "this type annotation is ugly and it says the API is wrong: callers retype by hand what the objects already carry. take the objects"
+  theme: overengineering
+  situation: "The agent wrote a function whose callers pass pairs of an object and values the object already holds, with a long tuple annotation to match."
+  count: 3
+- id: 28
+  phrase: "this wrapper type is ugly and needs to die, why can't we just return whatever the call returns?"
+  theme: overengineering
+  situation: "The agent added a response wrapper type around a value that the wrapped call already returns."
+  count: 1
+- id: 29
+  phrase: "your fix looks even uglier: you keep bending the model to carry a value that isn't an attribute. type the fields out in the route that needs them"
+  theme: overengineering
+  situation: "The agent forced a computed value into a response through the model (vars(), a fake default, a column loaded on every query) instead of building the response in the one route that needs it."
+  count: 3
+- id: 30
+  phrase: "why give session a default there? make it required, the caller decides which transaction it lands in"
+  theme: overengineering
+  situation: "The agent gave a session parameter a default that falls back to the ambient session."
+  count: 1
+- id: 31
+  phrase: "why do we even need this? nothing reads it, it's metadata passed along for no reader. delete it"
+  theme: scope
+  situation: "The agent added a value (a link, an id, a field) to a prompt or a payload that no consumer reads."
+  count: 1
+- id: 32
+  phrase: "don't make that a one-line conditional expression, it's less readable. write the if"
+  theme: naming
+  situation: "The agent packed a branch into a conditional expression that reads worse than an if statement."
+  count: 1
+- id: 33
+  phrase: "why do you bother guarding on that setting? the service is required, let a missing one fail loudly instead of skipping"
+  theme: overengineering
+  situation: "The agent skipped a step when a required setting is empty instead of letting the missing setting fail."
+  count: 1
+- id: 34
+  phrase: "why is that column nullable? it gives the table two shapes, every row should carry it"
+  theme: overengineering
+  situation: "The agent made a column nullable so that some rows keep the value elsewhere, which gives the table two shapes."
+  count: 3
+- id: 35
+  phrase: "why store the archive in the database? keep the files on disk and store the path"
+  theme: wrong layer
+  situation: "The agent stored file contents as a blob in a database row instead of the path to the files."
+  count: 1
+- id: 36
+  phrase: "it shouldn't have a JSON payload for one value, it should just be an encrypted text field"
+  theme: overengineering
+  situation: "The agent stored a single secret value inside a JSON payload column."
+  count: 1
+- id: 37
+  phrase: "that's ugly, an update_fields list of every field the function sets. for one or two fields sure, otherwise just call plain save()"
+  theme: overengineering
+  situation: "The agent saved a row with an update_fields list that names almost every field of the model."
+  count: 1
+- id: 38
+  phrase: "what is this factory parameter? it's a test seam threaded through production signatures. drop it, tests patch the one place the client is built"
+  theme: tests
+  situation: "The agent added a factory or client parameter to production functions only so tests can inject a fake."
+  count: 2
+- id: 39
+  phrase: "can't you see the smell? a check like identity == \"review\" reads as nonsense. name the fact the code actually consumes and store that"
+  theme: naming
+  situation: "The agent compared a value to a string that repeats the value's own name, because the stored field names the wrong fact."
+  count: 1
+- id: 40
+  phrase: "why this mapper function? the framework projects the row onto the response schema with from_attributes, return the rows"
+  theme: primitives
+  situation: "The agent wrote a function that copies fields from a database row into a response schema field by field."
+  count: 1
+- id: 41
+  phrase: "why re-do the platform's construction in an override just to change one thing? widen the primitive so it can declare that"
+  theme: primitives
+  situation: "The agent overrode a platform method and copied its whole body to change one detail, instead of adding a declaration to the platform."
+  count: 1
+- id: 42
+  phrase: "this is all wrong, you're not using the platform primitives: you wrapped a platform call in your own function. call the platform surface directly"
+  theme: primitives
+  situation: "The agent wrapped a platform call in its own helper function instead of calling the platform surface directly."
+  count: 1
+- id: 43
+  phrase: "think in terms of primitives, stop designing for every case: one primitive the app declares and the platform hydrates, like django's FileField"
+  theme: primitives
+  situation: "The agent invented new concepts (planes, audiences, modes) to cover every use case instead of one primitive that the app declares and the platform fills."
+  count: 1
+- id: 44
+  phrase: "you are reaching into the platform's internals instead of using the primitives and the exposed author surface. this app has to set an example"
+  theme: imports
+  situation: "The agent made an app reach into internal platform modules or private attributes instead of the public author surface."
+  count: 1
+- id: 45
+  phrase: "why are you hand-rolling HTTP calls to this service? use the existing client library instead of scattering raw httpx calls across modules"
+  theme: primitives
+  situation: "The agent called an external service with raw HTTP requests while a client library for it exists or is already installed."
+  count: 2
+- id: 46
+  phrase: "this works around the primitive instead of expanding it: a null owner used as a sentinel. widen the primitive with the new axis"
+  theme: primitives
+  situation: "The agent modelled a new case by leaving a field null as a marker, instead of adding the case to the primitive as a real value."
+  count: 1
+- id: 47
+  phrase: "isn't there a validator for this? declare the constraint on the parameter instead of parsing it by hand"
+  theme: primitives
+  situation: "The agent parsed and range-checked a request parameter by hand where the framework validates a declared constraint."
+  count: 2
+- id: 48
+  phrase: "be careful of adding endpoints, the platform already gives an app its board, run status, retry and read sides. use those"
+  theme: primitives
+  situation: "The agent added app routes for things the platform already serves for every app."
+  count: 1
+- id: 49
+  phrase: "don't add a doctor check for this, you keep doing that. doctor is for preconditions an operator must fix, not for one case you saw once"
+  theme: scope
+  situation: "The agent added a doctor check for a condition that fails clearly at use anyway or that was seen once."
+  count: 3
+- id: 50
+  phrase: "why is this creating its own workspace and cloning by hand when the platform already has one? use the existing workspace"
+  theme: primitives
+  situation: "The agent wrote its own workspace that clones a repository with a hand-made script, where a platform workspace already does it."
+  count: 1
+- id: 51
+  phrase: "why build the HTML in strings? use a template, the project already renders jinja"
+  theme: primitives
+  situation: "The agent built an HTML page with string formatting and hand escaping instead of a template."
+  count: 1
+- id: 52
+  phrase: "that makes no sense as a new config entry, doesn't druks already have a setting that holds this address? use that"
+  theme: primitives
+  situation: "The agent added a configuration entry for a value that an existing setting already provides."
+  count: 1
+- id: 53
+  phrase: "I know dbos supports this natively, why don't we use that? report progress with workflow events, not our own tracking"
+  theme: primitives
+  situation: "The agent built its own progress or state tracking for a workflow where the workflow engine has events for it."
+  count: 1
+- id: 54
+  phrase: "why are you creating a whole new store instead of the encryption druks already has? an encrypted column, not a vault of files"
+  theme: primitives
+  situation: "The agent built a new storage mechanism (files, envelopes, a reaper) for data that fits an encrypted column of the existing kind."
+  count: 1
+- id: 55
+  phrase: "isn't this a hack? a test that greps the source for a call name is a lint rule in a test costume. use ruff's banned-api"
+  theme: tests
+  situation: "The agent wrote a test that scans source files for a name, with an allowlist, instead of a lint rule."
+  count: 1
+- id: 56
+  phrase: "this is backwards: we already hold the data and ask the agent to give it all back. the workflow passes what it holds"
+  theme: wrong layer
+  situation: "The agent made a model echo back data that the workflow already holds, so the workflow can show or compare it."
+  count: 1
+- id: 57
+  phrase: "that makes no sense, it is abuse of redis: don't pass an answer between two code paths through a redis key. make the service answer with the right status"
+  theme: wrong layer
+  situation: "The agent used a Redis key as a side channel to carry an error from one code path to another."
+  count: 1
+- id: 58
+  phrase: "you're mixing core concepts with provider concepts: core code doesn't use github's word, it uses its own"
+  theme: wrong layer
+  situation: "The agent used a provider's own term (such as GitHub's slug) in a parameter or field of generic core code."
+  count: 1
+- id: 59
+  phrase: "why do you keep using that invented word? it's confusing, use the plain word for what it is"
+  theme: naming
+  situation: "The agent coined a jargon noun for something that a plain word already names."
+  count: 1
+- id: 60
+  phrase: "drop this require_ wrapper pattern, get() should just raise and that's it. the few callers that expect it missing catch the error"
+  theme: overengineering
+  situation: "The agent added a require_ function or a get that returns None plus a raising variant, instead of one get that raises."
+  count: 1
+- id: 61
+  phrase: "stop using kind as a name, it's vague and says nothing. name what it is"
+  theme: naming
+  situation: "The agent named a field, parameter or concept kind, type or similar vague word."
+  count: 3
+- id: 62
+  phrase: "that is a weird name, refer to our naming policy: the siblings are bare plural nouns, don't put the mechanism like classes or list in the name"
+  theme: naming
+  situation: "The agent added a name with a mechanism suffix (classes, list, dict, impls) beside siblings named as plain nouns."
+  count: 1
+- id: 63
+  phrase: "anything named View, druks hates that, don't do that. name the thing for what it is"
+  theme: naming
+  situation: "The agent named a class or schema with a View suffix."
+  count: 1
+- id: 64
+  phrase: "that name reads like a pure lookup, but the method also creates the row. name it so a reader knows it writes"
+  theme: naming
+  situation: "The agent named a method like a lookup (get_for_x) while it also creates or changes rows."
+  count: 1
+- id: 65
+  phrase: "that name reads as an action, but it only returns something. a function that returns a value starts with get_"
+  theme: naming
+  situation: "The agent named a function with an action verb (install, build) while it only returns a value and performs nothing."
+  count: 3
+- id: 66
+  phrase: "why a property for this override point? make it a get_ method that a subclass overrides"
+  theme: naming
+  situation: "The agent exposed an override point as a property instead of a get_ method."
+  count: 1
+- id: 67
+  phrase: "that name sucks, use the word the codebase already uses everywhere for this, not a new one"
+  theme: naming
+  situation: "The agent introduced a new word (stop, label, home) for a concept the codebase and its users already name with another word (cancel, slug, sandbox)."
+  count: 3
+- id: 68
+  phrase: "why the underscore? the class is imported across modules, the underscore is privacy theater. make it a public name"
+  theme: naming
+  situation: "The agent gave a class a leading underscore while other modules import it."
+  count: 2
+- id: 69
+  phrase: "shouldn't the column be value instead of key? key.key reads as the key's key"
+  theme: naming
+  situation: "The agent named a field with the same word as its class, so access reads twice (key.key)."
+  count: 1
+- id: 70
+  phrase: "parse, describe, handle say nothing to me. name the function for what it gives back"
+  theme: naming
+  situation: "The agent named a function or object with a generic verb (parse, describe, handle, process) that does not say what it returns."
+  count: 3
+- id: 71
+  phrase: "why open a session by hand in the route? take it as a dependency like every other route"
+  theme: primitives
+  situation: "The agent opened a database session with a session factory inside a route instead of taking the session as a dependency."
+  count: 1
+- id: 72
+  phrase: "this name only makes sense to a hyper-logical AI. name it the way an engineer would say it, like a cache or a client"
+  theme: naming
+  situation: "The agent named a class with an abstract word (Holding, Material, Envelope) instead of the plain engineering noun."
+  count: 1
+- id: 73
+  phrase: "remove the word holder from any code you write. name what it holds"
+  theme: naming
+  situation: "The agent named a field or class with holder, container or similar wrapper word."
+  count: 1
+- id: 74
+  phrase: "don't name it after redis, we shouldn't care what's underneath. just call it lock"
+  theme: naming
+  situation: "The agent named a module, function or class after the technology behind it (redis, postgres, httpx)."
+  count: 1
+- id: 75
+  phrase: "you keep naming things for what they do underneath (copy, inject, post). name it for what it means to someone who reads the call"
+  theme: naming
+  situation: "The agent named a function or attribute for its mechanism instead of for the result a reader cares about."
+  count: 3
+- id: 76
+  phrase: "route_ doesn't route anything, it gets a conversation for these parameters. the verb in the name must be what the function does"
+  theme: naming
+  situation: "The agent used a verb in a name that the function does not do (route, sync, handle) when it only fetches or returns something."
+  count: 1
+- id: 77
+  phrase: "the same word is written four times in one declaration, that's plain ugly. let the base own the field so nobody redeclares it"
+  theme: overengineering
+  situation: "The agent made every subclass redeclare a field with the same name that the base class could own."
+  count: 1
+- id: 78
+  phrase: "you don't connect a secret, the source issues it or refuses to. name it with the verb the domain uses, not the verb of your flow"
+  theme: naming
+  situation: "The agent named an action or an error with a verb that does not fit its object, such as connect for a secret that a source issues."
+  count: 1
+- id: 79
+  phrase: "author is a terrible name for the agent. name an agent with a verb for the work it does"
+  theme: naming
+  situation: "The agent named an agent declaration with a role noun (author, helper, worker) instead of a verb for the work it does."
+  count: 1
+- id: 80
+  phrase: "the whole point is that the agent drives. why is there so much python around the call, with loops and caps? let the agent do that work"
+  theme: overengineering
+  situation: "The agent wrote Python control logic (loops, retries, caps) around work that the agent call is meant to do itself."
+  count: 1
+- id: 81
+  phrase: "testing an unrelated field to mean a state is odd. give the state an explicit name, like is_managed"
+  theme: naming
+  situation: "The agent tested an unrelated field, such as an account id, to mean a state instead of giving that state an explicit is_ name."
+  count: 1
+- id: 82
+  phrase: "we have two fields for almost the same thing. keep one unique key and derive the label unless it must differ"
+  theme: naming
+  situation: "The agent added a name or title field beside an id or key field with overlapping meaning."
+  count: 1
+- id: 83
+  phrase: "avoid camelCase key names in python. when a foreign format needs them, build that shape in one place"
+  theme: naming
+  situation: "The agent spread camelCase dictionary keys of a foreign format through Python code."
+  count: 1
+- id: 84
+  phrase: "other products already use that word for something else, so it will mislead. pick a word nobody in this space has claimed"
+  theme: naming
+  situation: "The agent reused a word that products in the same space use for a different thing."
+  count: 1
+- id: 85
+  phrase: "unsettled names what the set is not. name it for what it is, with the word an operator already uses, like open"
+  theme: naming
+  situation: "The agent named a query or a set after a negative or abstract state instead of the plain word for what it holds."
+  count: 1
+- id: 86
+  phrase: "this adds an app concept to core. strip the app flavor, keep only the generic primitive in core, and leave the app's words in the app"
+  theme: wrong layer
+  situation: "The agent added an app-specific concept or word to the platform core."
+  count: 3
+- id: 87
+  phrase: "don't be so quick to add new modules at the package root. put it under the package that owns the concept"
+  theme: wrong layer
+  situation: "The agent added a new top-level module to the platform package for a feature that belongs under an existing one."
+  count: 1
+- id: 88
+  phrase: "you crept the run id into the author surface again. authors should never write or pass a run id, the platform carries it"
+  theme: wrong layer
+  situation: "The agent made app authors receive a run id and pass it to another call."
+  count: 1
+- id: 89
+  phrase: "you're spreading github and app policy all over core, a git hook in the sandbox module and a git field on the account. put that policy on the app side"
+  theme: wrong layer
+  situation: "The agent added app-specific or service-specific branches and fields to several platform modules."
+  count: 3
+- id: 90
+  phrase: "as an author, importing core should feel wrong. a class authors use or subclass belongs in a public namespace, not in core or sandbox"
+  theme: wrong layer
+  situation: "The agent placed a class that app authors use or subclass in core or another internal package instead of a public namespace."
+  count: 6
+- id: 91
+  phrase: "importing a private engine helper into app code is a crime. raise the error and let the platform react to it through a generic seam"
+  theme: wrong layer
+  situation: "The agent reached into a private engine helper from app code instead of raising an error that the platform handles."
+  count: 1
+- id: 92
+  phrase: "this is not a user setting. stop squatting a new kind of thing in an existing table, give it its own named home"
+  theme: wrong layer
+  situation: "The agent stored a new kind of value in an existing table that holds a different concept, such as a per-user settings table."
+  count: 1
+- id: 93
+  phrase: "the templates now live randomly at the package root. put them in the templates folder of the package that owns the pages"
+  theme: wrong layer
+  situation: "The agent put templates and their loader module at a random place instead of in the owning package's templates folder."
+  count: 1
+- id: 94
+  phrase: "why add this to druks when the change belongs in the sandbox service? druks passes the value through, the service resolves it"
+  theme: wrong layer
+  situation: "The agent added knowledge that another service owns, such as a map of provider images, to the platform."
+  count: 2
+- id: 95
+  phrase: "the sandbox service deciding this is druks behavior leaking into it. keep each decision with the side that owns it"
+  theme: wrong layer
+  situation: "The agent let a lower service make a decision that the platform owns."
+  count: 1
+- id: 96
+  phrase: "why is a question model in the workflows module? structured shapes go in contracts, beside the others"
+  theme: wrong layer
+  situation: "The agent defined a schema or contract class inside the workflows module."
+  count: 1
+- id: 97
+  phrase: "you just added to the author surface again without consulting me. a new export is a proposal first, take it out of this change"
+  theme: wrong layer
+  situation: "The agent added a new public export to the author surface as a side effect of a fix."
+  count: 2
+- id: 98
+  phrase: "the current account exists only in the request cycle, and you're reading it inside model methods. read it at the route and pass the account id down"
+  theme: wrong layer
+  situation: "The agent read the current account from request context inside model methods instead of taking it as an argument."
+  count: 1
+- id: 99
+  phrase: "this function type-sniffs a value tree to find the files, and pydantic validation already visits every node. collect them during validation, don't walk twice"
+  theme: primitives
+  situation: "The agent wrote a recursive isinstance walker over a value tree that the library's validation already visits."
+  count: 1
+- id: 100
+  phrase: "api is reserved for the fastapi layer. don't name a new package api, name it for what it holds"
+  theme: naming
+  situation: "The agent named a new package or module api where api already means the HTTP layer."
+  count: 1
+- id: 101
+  phrase: "the api client shouldn't call the db. the caller fetches the row and hands the client what it needs"
+  theme: wrong layer
+  situation: "The agent made an API client class or the API layer query the database."
+  count: 1
+- id: 102
+  phrase: "this belongs to the layer in front of druks. adding it to druks means user types and more. let the other layer solve it"
+  theme: wrong layer
+  situation: "The agent added user types or a presentation concern to the platform for a need that belongs to the hosting layer."
+  count: 1
+- id: 103
+  phrase: "managing the service's connections has nothing to do with chat. the service should expose those endpoints itself"
+  theme: wrong layer
+  situation: "The agent put service-specific endpoints under the chat app."
+  count: 1
+- id: 104
+  phrase: "you're mixing bot with chat. chat is a modality, bot is the primitive. keep bot pieces out of chat"
+  theme: wrong layer
+  situation: "The agent put bot administration, such as an admin code, under the chat concept."
+  count: 1
+- id: 105
+  phrase: "the secret store belongs in the secrets package beside its encrypted types. keep only the sandbox's own rows in the sandbox module"
+  theme: wrong layer
+  situation: "The agent spread secret storage across the sandbox module and a new module instead of the secrets package."
+  count: 1
+- id: 106
+  phrase: "why is a header name in the resource column? resource says what the token is for. a different fact gets its own field"
+  theme: wrong layer
+  situation: "The agent stored one fact, such as a transport header name, in a field that means another fact."
+  count: 1
+- id: 107
+  phrase: "why doesn't this helper live in the class that calls it? it has one caller, move it there"
+  theme: wrong layer
+  situation: "The agent left a helper at module level in a shared module although its one caller is a single class."
+  count: 1
+- id: 108
+  phrase: "why are these module functions and not methods? they take the object as their first argument, so they are methods passing self by hand"
+  theme: wrong layer
+  situation: "The agent wrote module-level functions that take one class's instance and read its state instead of methods on that class."
+  count: 3
+- id: 109
+  phrase: "this core primitive tries to handle every service's cases. keep it agnostic: ask the service class for the answer and return it"
+  theme: wrong layer
+  situation: "The agent put per-service kinds, field names and fallbacks inside a platform primitive instead of deferring to the service class."
+  count: 1
+- id: 110
+  phrase: "this if-chain over tracker kinds is ugly. put a base method on the tracker that each kind overrides"
+  theme: wrong layer
+  situation: "The agent wrote an if-chain over kinds at the call site instead of a base-class method that each kind overrides."
+  count: 1
+- id: 111
+  phrase: "why a store module? that pattern is banned. the new table goes in models, with its queries as classmethods on the model"
+  theme: wrong layer
+  situation: "The agent added a store or repository module beside models for a new table."
+  count: 1
+- id: 112
+  phrase: "this app is generic. why does it carry cases for one specific target? cut them, or make them config that the target owns"
+  theme: wrong layer
+  situation: "The agent wrote cases for one specific product or target into an app meant to be generic."
+  count: 1
+- id: 113
+  phrase: "you're binding shared infrastructure to one use case, a detail of one image is now global provider config. keep that detail with its use case"
+  theme: wrong layer
+  situation: "The agent changed shared infrastructure configuration for one app's use case."
+  count: 1
+- id: 114
+  phrase: "why is this exception not in the exceptions module of the package that raises it? move it, and move its base class if that blocks it"
+  theme: wrong layer
+  situation: "The agent defined an exception class outside the exceptions module of the package that raises it."
+  count: 1
+- id: 115
+  phrase: "don't make everything a step, that's a smell. a step marks a replay checkpoint, not each function the body calls"
+  theme: steps
+  situation: "The agent wrapped most functions a workflow calls in a step decorator."
+  count: 2
+- id: 116
+  phrase: "you're abusing steps. two of them only re-read rows the step before just wrote. return the data from that step instead"
+  theme: steps
+  situation: "The agent added steps that re-read from the database what an earlier step of the same run returned or wrote."
+  count: 2
+- id: 117
+  phrase: "another step just to recheck? will you add rerecheck next? rewind the same workflow to its check instead of adding a new one"
+  theme: steps
+  situation: "The agent added a separate step or workflow that repeats a check the existing workflow already runs."
+  count: 1
+- id: 118
+  phrase: "druks is all asyncio. why a blocking sleep, and thread wrappers around a sync provider? make the provider async"
+  theme: steps
+  situation: "The agent wrote synchronous functions, blocking sleeps or subprocess calls inside an asyncio application and wrapped them in threads."
+  count: 5
+- id: 119
+  phrase: "isn't it too much to spin up a thread for a small, capped read? call it inline"
+  theme: steps
+  situation: "The agent wrapped a cheap call in a thread."
+  count: 3
+- id: 120
+  phrase: "this is asyncio, a handful of concurrent tasks needs no backpressure. find the real cause before you add a limit"
+  theme: steps
+  situation: "The agent added backpressure or a concurrency limit between a small number of asyncio tasks."
+  count: 1
+- id: 121
+  phrase: "a workflow whose subject is a chat is a hack. a workflow's subject is the record it works on, not the channel a message came through"
+  theme: steps
+  situation: "The agent attached a workflow to a subject that does not own the work."
+  count: 1
+- id: 122
+  phrase: "the row already knows its session. don't pass the session back into a method of a row you just loaded; only reads and creates take it"
+  theme: primitives
+  situation: "The agent passed a session into an instance method of a row loaded from that same session."
+  count: 1
+- id: 123
+  phrase: "why enqueue a delayed cleanup after each operation? one periodic task that prunes is simpler. record the fact it needs to know what to prune"
+  theme: steps
+  situation: "The agent enqueued a one-off cleanup job after each operation instead of one periodic task."
+  count: 1
+- id: 124
+  phrase: "why does this step boot a sandbox and clone the repo when it only calls an API? only the steps that read the checkout should pay for it"
+  theme: steps
+  situation: "The agent started a sandbox and cloned the repository for an operation that only calls an API."
+  count: 1
+- id: 125
+  phrase: "the tests are overengineered for this change, with fixtures and helpers. keep the one test that proves the new contract"
+  theme: tests
+  situation: "The agent added many tests with fixtures and helpers for a small change."
+  count: 8
+- id: 126
+  phrase: "remove these tests, nobody asked for them. don't add test modules and test config that the task does not need"
+  theme: tests
+  situation: "The agent added a test module or test configuration the task did not ask for."
+  count: 4
+- id: 127
+  phrase: "don't test dbos itself. a test asserts our behavior, not the engine's guarantees"
+  theme: tests
+  situation: "The agent tested behavior of a library or engine that the library's own suite covers."
+  count: 4
+- id: 128
+  phrase: "tests that pin the wording of a prompt are ugly, every wording edit becomes a test edit. drop them"
+  theme: tests
+  situation: "The agent wrote tests that assert a template contains certain wording."
+  count: 1
+- id: 129
+  phrase: "we don't need that test. the existing test that renders every template already covers it"
+  theme: tests
+  situation: "The agent added a test for a path that an existing test or the type system already covers."
+  count: 2
+- id: 130
+  phrase: "kill that local check, CI already runs it. don't repeat CI checks in hooks or scripts"
+  theme: tests
+  situation: "The agent added a local hook or script step that repeats a check CI already runs."
+  count: 1
+- id: 131
+  phrase: "why run the tests again on release? CI already ran them on every pull request. drop the test step and its services from the release job"
+  theme: tests
+  situation: "The agent ran the test suite inside the release workflow."
+  count: 2
+- id: 132
+  phrase: "a browser test that checks how an image boots is weird. test the image beside its Dockerfile, in the job that builds it"
+  theme: tests
+  situation: "The agent tested an infrastructure artifact, such as a container image, with a browser-driven test in the app suite."
+  count: 1
+- id: 133
+  phrase: "this discovery walk is overengineered. import the modules explicitly and that's it"
+  theme: imports
+  situation: "The agent wrote a package walk or a cached discovery function to load implementations that a plain import would load."
+  count: 1
+- id: 134
+  phrase: "don't import a class just for an annotation. import what the code uses at runtime, or drop the hint"
+  theme: imports
+  situation: "The agent added an import, or kept a module dependency, only to annotate a parameter."
+  count: 2
+- id: 135
+  phrase: "why not relative imports inside the package? then a rename of the package touches none of its own modules"
+  theme: imports
+  situation: "The agent used absolute imports of the package's own name for sibling modules inside the package."
+  count: 1
+- id: 136
+  phrase: "look at how main imports it now. don't copy an old import idiom, like a module aliased to a private name, from code that has since changed"
+  theme: imports
+  situation: "The agent copied an outdated import idiom, such as a module aliased to a private name, instead of the shape main uses now."
+  count: 2
+- id: 137
+  phrase: "you've added way too many comments again, we're on a diet. cut every comment the code already says"
+  theme: narration
+  situation: "The agent commented lines and wrote docstrings whose code and signature already say what they do."
+  count: 6
+- id: 138
+  phrase: "remove this comment. a multi-line comment that explains the design or tells how things got this way is narration, the code and its names must carry it"
+  theme: narration
+  situation: "The agent wrote a multi-line comment that explains a design choice, a defensive branch or the history of an ordering."
+  count: 7
+- id: 139
+  phrase: "write the comments and docs of this change in ASD-STE100 simplified technical english: short sentences, one idea each, active voice. and keep the comment diet"
+  theme: narration
+  situation: "The agent wrote comments or docs in long sentences with more words than the facts need."
+  count: 5
+- id: 140
+  phrase: "remove mentions of how things were before, like 'rather than a pasted key'. docs describe only the end state"
+  theme: narration
+  situation: "The agent wrote docs or comments that contrast the new behavior with the old one."
+  count: 1
+- id: 141
+  phrase: "your readme is horrendous, kill most of it. we don't need a word-by-word explanation of the flow, only what it is and how to use it"
+  theme: narration
+  situation: "The agent wrote a README that walks through the code flow step by step."
+  count: 2
+- id: 142
+  phrase: "don't just repeat the readme in AGENTS.md. usage and examples go in the readme, AGENTS.md gets the structural facts only"
+  theme: narration
+  situation: "The agent copied README content into the agent instructions file."
+  count: 1
+- id: 143
+  phrase: "log lines don't need interpretation, they need facts: what we tried, what the other side had, and what we did"
+  theme: narration
+  situation: "The agent wrote a log message that guesses at causes instead of stating facts."
+  count: 1
+- id: 144
+  phrase: "telling the model not to do something it would never do is stating the obvious. remove that line, and the line that made it think of it"
+  theme: narration
+  situation: "The agent added a prompt line that forbids something the model would not do unasked."
+  count: 1
+- id: 145
+  phrase: "remove the version bump and the changelog edits. a feature change does not bump the version, the release does"
+  theme: scope
+  situation: "The agent bumped the package version or edited the changelog inside a feature change."
+  count: 1
+- id: 146
+  phrase: "I didn't ask you to change the CI file, kill it. touch only the files the task needs"
+  theme: scope
+  situation: "The agent changed a file, or added an item to a scaffold, that the task did not mention."
+  count: 2
+- id: 147
+  phrase: "you baked a feature into the core run loop: core now imports the feature and catches its error. keep core feature-blind and let the feature fill a generic seam"
+  theme: wrong layer
+  situation: "The agent made a core module import a feature subsystem or added a feature-specific branch to a generic code path."
+  count: 1
+- id: 148
+  phrase: "an exception is a signal that carries data. don't put behavior on it, like a method that writes a row"
+  theme: wrong layer
+  situation: "The agent gave an exception class a method that performs work, such as a database write."
+  count: 1
+- id: 149
+  phrase: "you didn't do exactly what the task said, you kept extra steps it never asked for. match it exactly"
+  theme: scope
+  situation: "The agent kept parts that the task told it to remove or leave out."
+  count: 2
+- id: 150
+  phrase: "why did you remove that? you deleted parts this file needs while changing its neighbour. remove only what the task moves out"
+  theme: scope
+  situation: "The agent deleted a working piece of a file while changing a neighbouring part."
+  count: 1
+- id: 151
+  phrase: "I don't want a phase 0, that's a workaround the real design makes dead on arrival. build the real design from the start"
+  theme: scope
+  situation: "The agent built or proposed a temporary first phase or shim that the agreed design makes obsolete."
+  count: 1
