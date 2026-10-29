@@ -11,7 +11,7 @@ from druks.prompts import render_prompt
 from druks.testing import run_workflow
 from pydantic import ValidationError
 
-from druks_house_rules import driver
+from druks_house_rules import app, driver, hooks
 from druks_house_rules.contracts import Pick
 from druks_house_rules.models import Check
 from druks_house_rules.workflows import HouseRules
@@ -127,3 +127,14 @@ async def test_driver_prompt_is_the_cli_prompt():
     assert rendered == driver.ENVIRONMENT.get_template("house_rules/driver.md").render(
         task="Add notes.", diff="+x = 1"
     )
+
+
+@pytest.mark.parametrize(("entry", "phrase"), [(12, driver.POOL[11]["phrase"]), (None, None)])
+async def test_the_implementer_hears_the_picked_phrase(monkeypatch, entry, phrase):
+    pick = mock.AsyncMock(return_value=Pick(entry=entry, where=""))
+    monkeypatch.setattr(app.HouseRules, "driver", pick)
+    workspace = mock.Mock(get_diff=mock.AsyncMock(return_value="+x = 1"))
+
+    assert await hooks.drive(prompt="Add notes.", workspace=workspace) == phrase
+    pick.assert_awaited_once_with(diff="+x = 1", task="Add notes.")
+    assert hooks.implementer.id == "software_factory.implement"

@@ -100,6 +100,14 @@ A workflow calls `HouseRules.driver(diff=diff, task=task)` and gets a `Pick`:
 `entry`, `phrase`, and `where`, with `entry` null when nothing fits. Each call
 records one `rule.hit` fact on the run: the entry id and the phrase, or `none`.
 
+The driver speaks when an implementer ends its turn, on two hosts. In Druks,
+`hooks.py` hooks the `software_factory.implement` agent: the driver reads the
+checkout's diff and the task, and the picked phrase goes back to the
+implementer as one more turn in its session. In Claude Code, the plugin's Stop
+hook does the same once the check, the surface delta, and the moves pass hold.
+On both hosts the phrase comes verbatim from [the pool](#the-driver-pool), and
+it speaks once per turn.
+
 ## Run in Druks
 
 The `app` extra ships the Druks app `house_rules`. Druks receives the pull
@@ -144,7 +152,7 @@ repository that holds `.druks/house_rules/config.yml`, every hook answers nothin
 | PostToolUse on Edit, Write, and MultiEdit | Runs the check on the edited file and returns the findings. The edit stands. |
 | PreToolUse on Bash | Denies with the rule text: R33 a `git commit` on `main`, R20 a test run piped into `tail`, `head`, or `grep`, R28 a commit message with AI attribution. Asks the owner before R35, a `gh pr merge` or `gh release`. |
 | PreToolUse on ExitPlanMode | R1: denies a plan without a `prior_art` section, or one whose section does not name a module, class, setting, column, flag, or dependency the plan adds. |
-| Stop | Holds the branch against `origin/main`: the check, the surface delta, and the moves pass. On any finding it blocks the stop once with the three lists, and lets the second stop through. |
+| Stop | Holds the branch against `origin/main`: the check, the surface delta, and the moves pass. On any finding it blocks the stop once with the three lists. A branch that holds goes to the driver with the person's messages in the session as the task, and a picked phrase blocks the stop once, verbatim. The second stop goes through. |
 
 The moves pass sends the catalog in `.druks/software_factory/review.md`, the
 delta, and the diff to a small model through `claude -p` and asks which moves

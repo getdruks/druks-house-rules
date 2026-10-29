@@ -8,7 +8,7 @@ import stat
 
 import pytest
 
-from druks_house_rules import cli, hooks, moves
+from druks_house_rules import cli, moves, plugin
 from tests import conftest
 
 CATALOG = """# Moves
@@ -18,8 +18,30 @@ CATALOG = """# Moves
 """
 
 
+TRANSCRIPT = [
+    {"type": "user", "message": {"role": "user", "content": "Add a notes reader."}},
+    {"type": "user", "isMeta": True, "message": {"role": "user", "content": "<context/>"}},
+    {
+        "type": "user",
+        "toolUseResult": "ok",
+        "message": {"role": "user", "content": [{"type": "tool_result", "content": "ok"}]},
+    },
+    {
+        "type": "user",
+        "message": {"role": "user", "content": [{"type": "text", "text": "Test it."}]},
+    },
+]
+
+
 def event(name: str, root: pathlib.Path, **fields) -> dict:
     return {"hook_event_name": name, "cwd": str(root), **fields}
+
+
+def stop(root: pathlib.Path, **fields) -> dict:
+    """A Stop event over a session in which the person asked for a notes reader."""
+    transcript = root.parent / "transcript.jsonl"
+    transcript.write_text("\n".join(json.dumps(entry) for entry in TRANSCRIPT))
+    return event("Stop", root, transcript_path=str(transcript), **fields)
 
 
 @pytest.fixture
@@ -44,7 +66,7 @@ def no_claude(monkeypatch):
 def test_edit_with_is_none_is_fed_back(druks_repository, no_claude):
     path = druks_repository.root / "routes.py"
     path.write_text("def read(value):\n    if value is None:\n        return 1\n    return 2\n")
-    answer = hooks.run(
+    answer = plugin.run(
         event(
             "PostToolUse",
             druks_repository.root,
@@ -60,7 +82,7 @@ def test_clean_edit_answers_nothing(druks_repository):
     path = druks_repository.root / "routes.py"
     path.write_text("def read(value):\n    if value:\n        return 1\n    return 2\n")
     tool_input = {"file_path": str(path)}
-    assert not hooks.run(
+    assert not plugin.run(
         event("PostToolUse", druks_repository.root, tool_name="Edit", tool_input=tool_input)
     )
 
@@ -69,13 +91,13 @@ def test_edit_outside_a_configured_repository_answers_nothing(tmp_path):
     path = tmp_path / "routes.py"
     path.write_text("x = None\n")
     tool_input = {"file_path": str(path)}
-    assert not hooks.run(event("PostToolUse", tmp_path, tool_name="Write", tool_input=tool_input))
+    assert not plugin.run(event("PostToolUse", tmp_path, tool_name="Write", tool_input=tool_input))
 
 
 def test_stop_lists_findings_and_surface_once(druks_repository, no_claude):
     druks_repository.add_tree(conftest.FIXTURES / "delta" / "head")
     (druks_repository.root / "backend" / "druks" / "utils.py").write_text("x = 1\n")
-    answer = hooks.run(event("Stop", druks_repository.root, stop_hook_active=False))
+    answer = plugin.run(stop(druks_repository.root, stop_hook_active=False))
     assert answer["decision"] == "block"
     reason = answer["reason"]
     assert reason.startswith("druks-house-rules held the change against origin/main.")
@@ -83,17 +105,33 @@ def test_stop_lists_findings_and_surface_once(druks_repository, no_claude):
     assert "backend/druks/notes.py:1 module backend.druks.notes" in reason
     assert "backend/druks/settings.py:3 setting Settings.notes_limit" in reason
     assert "backend/druks/utils.py:1 module backend.druks.utils" in reason
-    assert not hooks.run(event("Stop", druks_repository.root, stop_hook_active=True))
+    assert not plugin.run(stop(druks_repository.root, stop_hook_active=True))
 
 
 def test_stop_with_nothing_added_answers_nothing(druks_repository, no_claude):
-    assert not hooks.run(event("Stop", druks_repository.root, stop_hook_active=False))
+    assert not plugin.run(stop(druks_repository.root, stop_hook_active=False))
+
+
+def test_a_change_that_holds_gets_the_driver_phrase_once(druks_repository, no_claude, monkeypatch):
+    asked = []
+
+    def pick(root, base, task):
+        asked.append((base, task))
+        return {"entry": 3, "phrase": "Is that the simplest way?", "where": "notes.py"}
+
+    monkeypatch.setattr("druks_house_rules.driver.pick", pick)
+
+    answer = plugin.run(stop(druks_repository.root, stop_hook_active=False))
+
+    assert answer == {"decision": "block", "reason": "Is that the simplest way?"}
+    assert asked == [("origin/main", "Add a notes reader.\n\nTest it.")]
+    assert not plugin.run(stop(druks_repository.root, stop_hook_active=True))
 
 
 def test_bash_on_main_is_denied(druks_repository):
     druks_repository.git("checkout", "-q", "main")
     tool_input = {"command": 'git commit -m "DRU-1 -- Add notes"'}
-    answer = hooks.run(
+    answer = plugin.run(
         event("PreToolUse", druks_repository.root, tool_name="Bash", tool_input=tool_input)
     )
     assert answer == {
@@ -109,7 +147,7 @@ def test_bash_on_main_is_denied(druks_repository):
 
 def test_exit_plan_mode_without_prior_art_is_denied(druks_repository):
     tool_input = {"plan": "# Notes\n\nAdd a class `Note`.\n"}
-    answer = hooks.run(
+    answer = plugin.run(
         event("PreToolUse", druks_repository.root, tool_name="ExitPlanMode", tool_input=tool_input)
     )
     assert answer["hookSpecificOutput"]["permissionDecision"] == "deny"
@@ -140,7 +178,7 @@ def test_moves_pass_sends_catalog_surface_and_diff(druks_repository, monkeypatch
     )
     fake.chmod(fake.stat().st_mode | stat.S_IXUSR)
     monkeypatch.setenv("PATH", f"{fake.parent}{os.pathsep}{os.environ['PATH']}")
-    reply = hooks.run(event("Stop", druks_repository.root, stop_hook_active=False))
+    reply = plugin.run(stop(druks_repository.root, stop_hook_active=False))
     assert "backend/druks/notes.py:1 move bag parameter: int beside dict" in reply["reason"]
     prompt = sent.read_text()
     assert "unnamed condition" in prompt

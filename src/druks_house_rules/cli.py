@@ -4,7 +4,7 @@ import json
 import pathlib
 import sys
 
-from . import changes, config, delta, driver, hooks, moves, rules
+from . import changes, config, delta, driver, moves, plugin, rules
 from .exceptions import HouseRulesError, MissingConfigError
 
 
@@ -54,7 +54,7 @@ def main(argv: list[str] | None = None) -> int:
 
 def _run(arguments: argparse.Namespace) -> int:
     if arguments.command == "hook":
-        answer = hooks.run(json.load(sys.stdin))
+        answer = plugin.run(json.load(sys.stdin))
         if answer:
             print(json.dumps(answer))
         return 0

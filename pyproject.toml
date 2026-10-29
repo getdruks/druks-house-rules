@@ -28,7 +28,7 @@ dev = [
 ]
 
 [tool.uv.sources]
-druks = { git = "https://github.com/czpython/druks", branch = "main" }
+druks = { git = "https://github.com/czpython/druks", branch = "claude/project-thread-2ljb4u" }
 
 [build-system]
 requires = ["hatchling"]
