@@ -47,6 +47,21 @@ def test_R25_mechanism_modules(repository, capsys, verdict):
 
 
 @pytest.mark.parametrize("verdict", ["pass", "fail"])
+def test_R39_parent_relative_imports(repository, capsys, verdict):
+    repository.add_tree(conftest.FIXTURES / "R39" / verdict)
+    repository.configure(["R39"])
+    repository.commit()
+    code, lines = run(repository, capsys=capsys)
+    if verdict == "pass":
+        assert (code, lines) == (0, [])
+    else:
+        assert code == 1
+        assert lines == [
+            "notes/views/app.py:1 R39 parent-relative import; write from notes.core import models"
+        ]
+
+
+@pytest.mark.parametrize("verdict", ["pass", "fail"])
 def test_R28_commits(repository, capsys, verdict):
     repository.configure(["R28"])
     repository.commit()

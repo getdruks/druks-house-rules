@@ -21,6 +21,7 @@ RULES: dict[str, Rule] = {
     "R11": patterns.check,
     "R25": modules.check,
     "R16": imports.check,
+    "R39": ruff_rules.check,
 }
 
 
