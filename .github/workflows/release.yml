@@ -1,0 +1,15 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    uses: getdruks/druks-workflows/.github/workflows/release-app.yml@v1
+    with:
+      app: house_rules
