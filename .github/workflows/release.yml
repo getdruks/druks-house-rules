@@ -13,3 +13,4 @@ jobs:
     uses: getdruks/druks-workflows/.github/workflows/release-app.yml@v1
     with:
       app: house_rules
+      extras: app
