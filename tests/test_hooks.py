@@ -149,8 +149,7 @@ def test_moves_pass_sends_catalog_surface_and_diff(druks_repository, monkeypatch
 
 
 def test_parse_tolerates_a_code_fence():
-    assert moves.parse('```json\n{"moves": []}\n```') == []
-    assert moves.parse("") == []
+    assert moves.parse('```json\n{"moves": []}\n```') == {"moves": []}
 
 
 def test_merge_asks_the_owner_through_the_hook_command(druks_repository, monkeypatch, capsys):

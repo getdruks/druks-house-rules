@@ -49,9 +49,11 @@ def check(change: changes.Change) -> list[Finding]:
         diff=change.checkout.diff(change.base_commit) or "nothing",
     )
     answer = ask(prompt)
+    if not answer:
+        return []
     return [
         Finding(move["path"], int(move["line"]), "move", f"{move['move']}: {move['why']}")
-        for move in parse(answer)
+        for move in parse(answer)["moves"]
     ]
 
 
@@ -60,7 +62,7 @@ def ask(prompt: str) -> str:
     binary = shutil.which("claude")
     if not binary:
         print(
-            "druks-house-rules: claude is not on PATH; the moves pass is skipped", file=sys.stderr
+            "druks-house-rules: claude is not on PATH; the model pass is skipped", file=sys.stderr
         )
         return ""
     result = subprocess.run(
@@ -91,11 +93,9 @@ def ask(prompt: str) -> str:
     return envelope["result"]
 
 
-def parse(answer: str) -> list[dict]:
-    """The moves in the model's answer, tolerant of a code fence around the JSON."""
+def parse(answer: str) -> dict:
+    """The JSON object in the model's answer, tolerant of a code fence around it."""
     text = answer.strip()
     if text.startswith("```"):
         text = text.split("\n", 1)[1].rsplit("```", 1)[0]
-    if not text:
-        return []
-    return json.loads(text)["moves"]
+    return json.loads(text)

@@ -66,17 +66,39 @@ The test suite runs each through the CLI.
 
 ## The driver pool
 
-`src/druks_house_rules/pool.yml` holds the phrases Paulo uses to correct an
-agent, one entry per phrase. An entry has `phrase` (his words, with code names
-and personal remarks removed, so the phrase steers without naming code the
-target does not have), `theme` (one of `overengineering`, `primitives`,
-`naming`, `wrong layer`, `steps`, `tests`, `imports`, `narration`, `scope`),
-`situation` (one sentence on what the agent had produced, described, not
-quoted), and `count` (how many sessions he said it in). The pool is not a
-checklist. A reviewer reads the rules above. A picker reads the pool to choose
-the one phrase that fits an implementer's output, and the implementer finds
-the problem itself. The test suite rejects an entry that misses a field or
-names an unknown theme.
+`src/druks_house_rules/templates/pool.yml` holds the phrases Paulo uses to
+correct an agent, one entry per phrase. An entry has `id` (its position, from
+1), `phrase` (his correction, made concrete with what the agent then admitted
+or changed, so that it makes sense alone in a review of a diff), `theme` (one
+of `overengineering`, `primitives`, `naming`, `wrong layer`, `steps`, `tests`,
+`imports`, `narration`, `scope`), `situation` (one sentence on what the agent
+had produced, described, not quoted), and `count` (how many sessions he said
+the source phrase in). A phrase names nothing outside the diff and no other
+agent product, and a hard rule above gets no phrase. The pool is not a
+checklist. A reviewer reads the rules above. The driver reads the pool to
+choose the one phrase that fits an implementer's output, and the implementer
+finds the problem itself. The test suite rejects an entry that misses a field,
+names an unknown theme, or breaks the id order.
+
+## Print the phrase that fits a change
+
+```bash
+druks-house-rules phrase --base origin/main --task-file task.md
+```
+
+The command reads the working tree against the merge base and the task the
+change was made for, renders `templates/driver.md` with the pool included, and
+asks the model for the one pool entry whose situation the change shows. It
+prints the phrase verbatim on one line and where in the diff the situation
+shows on the next, or nothing when no situation matches. The model runs
+through `claude -p`, like the moves pass. An entry id the pool does not hold
+exits 2.
+
+In Druks, the `house_rules.driver` agent renders the same template on the
+harness and model the operator sets for it in the app's **Settings → Agents**.
+A workflow calls `HouseRules.driver(diff=diff, task=task)` and gets a `Pick`:
+`entry`, `phrase`, and `where`, with `entry` null when nothing fits. Each call
+records one `rule.hit` fact on the run: the entry id and the phrase, or `none`.
 
 ## Run in Druks
 

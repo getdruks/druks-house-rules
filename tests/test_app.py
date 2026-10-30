@@ -1,12 +1,18 @@
-"""The app checks each head once and posts the findings as a check run."""
+"""The app checks each head once, posts the findings as a check run, and drives a change
+with one phrase from the pool."""
 
 import json
 import subprocess
 from unittest import mock
 
+import pytest
 from druks.core.services import Github
+from druks.prompts import render_prompt
 from druks.testing import run_workflow
+from pydantic import ValidationError
 
+from druks_house_rules import driver
+from druks_house_rules.contracts import Pick
 from druks_house_rules.models import Check
 from druks_house_rules.workflows import HouseRules
 
@@ -100,3 +106,24 @@ async def test_run_posts_one_annotation_per_finding(druks_db, monkeypatch):
         ],
     )
     assert check.conclusion == "failure"
+
+
+def test_pick_carries_the_phrase_verbatim_and_records_a_hit():
+    phrase = driver.POOL[11]["phrase"]
+    pick = Pick(entry=12, where="models.py adds a column for one edge case.")
+
+    assert (pick.phrase, pick.to_event()) == (
+        phrase,
+        {"topic": "rule.hit", "summary": f"12: {phrase}"},
+    )
+    assert Pick(entry=None, where="").to_event() == {"topic": "rule.hit", "summary": "none"}
+    with pytest.raises(ValidationError):
+        Pick(entry=9999, where="")
+
+
+async def test_driver_prompt_is_the_cli_prompt():
+    rendered = await render_prompt("house_rules/driver.md", task="Add notes.", diff="+x = 1")
+
+    assert rendered == driver.ENVIRONMENT.get_template("house_rules/driver.md").render(
+        task="Add notes.", diff="+x = 1"
+    )

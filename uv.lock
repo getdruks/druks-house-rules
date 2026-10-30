@@ -715,6 +715,7 @@ source = { editable = "." }
 dependencies = [
     { name = "ast-grep-cli" },
     { name = "grimp" },
+    { name = "jinja2" },
     { name = "pyyaml" },
     { name = "ruff" },
 ]
@@ -735,6 +736,7 @@ requires-dist = [
     { name = "ast-grep-cli", specifier = ">=0.51.0" },
     { name = "druks", marker = "extra == 'app'", git = "https://github.com/czpython/druks?branch=main" },
     { name = "grimp", specifier = ">=3.17" },
+    { name = "jinja2", specifier = ">=3.1" },
     { name = "pyyaml", specifier = ">=6.0" },
     { name = "ruff", specifier = ">=0.17" },
 ]

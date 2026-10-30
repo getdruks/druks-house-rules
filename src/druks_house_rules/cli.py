@@ -4,7 +4,7 @@ import json
 import pathlib
 import sys
 
-from . import changes, config, delta, hooks, moves, rules
+from . import changes, config, delta, driver, hooks, moves, rules
 from .exceptions import HouseRulesError, MissingConfigError
 
 
@@ -29,6 +29,14 @@ def main(argv: list[str] | None = None) -> int:
     )
     catalog.add_argument("--base", required=True)
     catalog.add_argument("root", nargs="?", type=pathlib.Path, default=pathlib.Path("."))
+    phrase = commands.add_parser(
+        "phrase", help="print the one phrase from the pool that fits the change, or nothing"
+    )
+    phrase.add_argument("--base", required=True)
+    phrase.add_argument(
+        "--task-file", required=True, type=pathlib.Path, help="the task the change was made for"
+    )
+    phrase.add_argument("root", nargs="?", type=pathlib.Path, default=pathlib.Path("."))
     commands.add_parser(
         "hook",
         help="answer one Claude Code hook event: the input JSON on stdin, the output on stdout",
@@ -51,6 +59,12 @@ def _run(arguments: argparse.Namespace) -> int:
             print(json.dumps(answer))
         return 0
     root = arguments.root.resolve()
+    if arguments.command == "phrase":
+        pick = driver.pick(root, arguments.base, arguments.task_file.read_text())
+        if pick:
+            print(pick["phrase"])
+            print(pick["where"])
+        return 0
     settings = config.load(root)
     if arguments.command == "delta":
         change = changes.Change(root, settings, arguments.base, None)

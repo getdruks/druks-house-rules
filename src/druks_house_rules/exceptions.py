@@ -8,3 +8,7 @@ class ConfigError(HouseRulesError):
 
 class MissingConfigError(ConfigError):
     """The configuration file is not in the repository."""
+
+
+class UnknownEntryError(HouseRulesError):
+    """The model picked an entry id that the pool does not hold."""
