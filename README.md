@@ -7,7 +7,7 @@ repository's `.druks/software_factory/review.md` and the Druks reviewer applies 
 ## Install
 
 ```bash
-uv pip install "git+https://github.com/getdruks/druks-house-rules@v0.0.4"
+uv pip install "git+https://github.com/getdruks/druks-house-rules@v0.0.5"
 ```
 
 ## Check a change
@@ -55,9 +55,10 @@ checklist. `R<n>` is rule `n` of the rules the corrections added.
 | R11 | A `@step` marks a replay checkpoint. | A step whose body is one call to `enqueue`, a logger, or `set_run_phase` fails. |
 | R25 | No module named `deps`, `helpers`, `utils`, `common`, or `misc`. | Added files with `--base`; all tracked files without. |
 | R16 | Author-surface modules never import an app. Apps import only the public modules. | The `R16` key in the configuration. |
+| R39 | No import from a parent package. Import by the absolute path; `from . import x` and `from .x import y` pass. | ruff `TID252`. In a package, the message names the absolute import. |
 
 rule-2, rule-3, R21, R13, and R11 are ast-grep rules, one YAML file each in
-`src/druks_house_rules/patterns/`. rule-1, R23, and R5 are ruff rules. R16
+`src/druks_house_rules/patterns/`. rule-1, R23, R5, and R39 are ruff rules. R16
 reads the import graph that grimp builds. R14, R27, R28, and R25 read text,
 the pull request, and git.
 
@@ -124,7 +125,7 @@ nothing twice.
 Install the extra in the Druks installation and build its sandbox template:
 
 ```bash
-uv pip install "druks-house-rules[app] @ git+https://github.com/getdruks/druks-house-rules@v0.0.4"
+uv pip install "druks-house-rules[app] @ git+https://github.com/getdruks/druks-house-rules@v0.0.5"
 druks init-db
 druks sandboxes build
 ```
@@ -171,7 +172,7 @@ these fail the check.
 
 ```yaml
 # The rules to run. Without this key, every rule runs.
-rules: [R14, R28, R27, rule-3, rule-2, rule-1, R21, R23, R5, R13, R11, R25, R16]
+rules: [R14, R28, R27, rule-3, rule-2, rule-1, R21, R23, R5, R13, R11, R25, R16, R39]
 
 # Paths no rule reads. `*` stays inside one directory, `**` crosses directories.
 exclude: [uv.lock, frontend/package-lock.json, backend/druks/migrations/versions/**]

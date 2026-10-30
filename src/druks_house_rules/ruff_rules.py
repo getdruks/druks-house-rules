@@ -1,4 +1,5 @@
-"""The rules ruff checks: rule-1 bare return, R23 function-level imports, R5 catches."""
+"""The rules ruff checks: rule-1 bare return, R23 function-level imports, R5 catches,
+R39 parent-relative imports."""
 
 import json
 import pathlib
@@ -13,6 +14,7 @@ CODES = {
     "PLC0415": "R23",
     "BLE001": "R5",
     "E722": "R5",
+    "TID252": "R39",
 }
 
 
@@ -45,5 +47,13 @@ def check(change: changes.Change) -> list[Finding]:
     for entry in json.loads(result.stdout):
         rule = CODES.get(entry["code"] or "", "syntax")
         path = pathlib.Path(entry["filename"]).relative_to(change.root).as_posix()
-        findings.append(Finding(path, entry["location"]["row"], rule, entry["message"]))
+        findings.append(Finding(path, entry["location"]["row"], rule, message(entry)))
     return findings
+
+
+def message(entry: dict) -> str:
+    """Ruff's text, or for R39 the absolute import ruff resolves when the file is in a package."""
+    fix = entry["fix"]
+    if entry["code"] == "TID252" and fix:
+        return f"parent-relative import; write {fix['edits'][0]['content']}"
+    return entry["message"]

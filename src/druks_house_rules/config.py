@@ -26,6 +26,7 @@ RULES = {
     "R11": "steps",
     "R25": "mechanism modules",
     "R16": "import direction",
+    "R39": "parent-relative imports",
 }
 
 
