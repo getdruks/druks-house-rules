@@ -112,14 +112,14 @@ def test_stop_with_nothing_added_answers_nothing(druks_repository, no_claude):
     assert not plugin.run(stop(druks_repository.root, stop_hook_active=False))
 
 
-def test_a_change_that_holds_gets_the_driver_phrase_once(druks_repository, no_claude, monkeypatch):
+def test_a_change_that_holds_gets_one_phrase_once(druks_repository, no_claude, monkeypatch):
     asked = []
 
     def pick(root, base, task):
         asked.append((base, task))
         return {"entry": 3, "phrase": "Is that the simplest way?", "where": "notes.py"}
 
-    monkeypatch.setattr("druks_house_rules.driver.pick", pick)
+    monkeypatch.setattr("druks_house_rules.pool.pick", pick)
 
     answer = plugin.run(stop(druks_repository.root, stop_hook_active=False))
 

@@ -10,7 +10,7 @@ import pathlib
 import subprocess
 from collections.abc import Mapping
 
-from . import bash, changes, checkout, config, delta, driver, moves, plans, rules
+from . import bash, changes, checkout, config, delta, moves, plans, pool, rules
 from .exceptions import ConfigError
 from .findings import Finding
 
@@ -61,7 +61,7 @@ def _edit(path: pathlib.Path) -> dict | None:
 
 def _stop(cwd: str, transcript: pathlib.Path) -> dict | None:
     """Hold the change to the rules, the surface and the moves. A change that holds
-    goes to the driver, and its phrase is the agent's next turn."""
+    gets one phrase from the pool as the agent's next turn."""
     repository = _repository(pathlib.Path(cwd))
     if not repository:
         return None
@@ -87,7 +87,7 @@ def _stop(cwd: str, transcript: pathlib.Path) -> dict | None:
                 f"\nMoves from {moves.CATALOG}; apply each one or say why not:\n{_lines(applied)}"
             )
         return {"decision": "block", "reason": "\n".join(reason)}
-    pick = driver.pick(root, base, _task(transcript))
+    pick = pool.pick(root, base, _task(transcript))
     if pick:
         return {"decision": "block", "reason": pick["phrase"]}
     return None

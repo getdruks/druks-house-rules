@@ -64,7 +64,7 @@ the pull request, and git.
 Every rule has a positive and a negative fixture in `tests/fixtures/<rule>/`.
 The test suite runs each through the CLI.
 
-## The driver pool
+## The phrase pool
 
 `src/druks_house_rules/templates/pool.yml` holds the phrases Paulo uses to
 correct an agent, one entry per phrase. An entry has `id` (its position, from
@@ -75,7 +75,7 @@ of `overengineering`, `primitives`, `naming`, `wrong layer`, `steps`, `tests`,
 had produced, described, not quoted), and `count` (how many sessions he said
 the source phrase in). A phrase names nothing outside the diff and no other
 agent product, and a hard rule above gets no phrase. The pool is not a
-checklist. A reviewer reads the rules above. The driver reads the pool to
+checklist. A reviewer reads the rules above. The pick reads the pool to
 choose the one phrase that fits an implementer's output, and the implementer
 finds the problem itself. The test suite rejects an entry that misses a field,
 names an unknown theme, or breaks the id order.
@@ -87,25 +87,25 @@ druks-house-rules phrase --base origin/main --task-file task.md
 ```
 
 The command reads the working tree against the merge base and the task the
-change was made for, renders `templates/driver.md` with the pool included, and
+change was made for, renders `templates/pick.md` with the pool included, and
 asks the model for the one pool entry whose situation the change shows. It
 prints the phrase verbatim on one line and where in the diff the situation
 shows on the next, or nothing when no situation matches. The model runs
 through `claude -p`, like the moves pass. An entry id the pool does not hold
 exits 2.
 
-In Druks, the `house_rules.driver` agent renders the same template on the
+In Druks, the `house_rules.pick` agent renders the same template on the
 harness and model the operator sets for it in the app's **Settings → Agents**.
-A workflow calls `HouseRules.driver(diff=diff, task=task)` and gets a `Pick`:
+A workflow calls `HouseRules.pick(diff=diff, task=task)` and gets a `Pick`:
 `entry`, `phrase`, and `where`, with `entry` null when nothing fits. Each call
 records one `rule.hit` fact on the run: the entry id and the phrase, or `none`.
 
-The driver speaks when an implementer ends its turn, on two hosts. In Druks,
-`hooks.py` hooks the `software_factory.implement` agent: the driver reads the
+The phrase reaches an implementer when it ends its turn, on two hosts. In Druks,
+`hooks.py` hooks the `software_factory.implement` agent: the pick reads the
 checkout's diff and the task, and the picked phrase goes back to the
 implementer as one more turn in its session. In Claude Code, the plugin's Stop
 hook does the same once the check, the surface delta, and the moves pass hold.
-On both hosts the phrase comes verbatim from [the pool](#the-driver-pool), and
+On both hosts the phrase comes verbatim from [the pool](#the-phrase-pool), and
 it speaks once per turn.
 
 ## Run in Druks
@@ -152,7 +152,7 @@ repository that holds `.druks/house_rules/config.yml`, every hook answers nothin
 | PostToolUse on Edit, Write, and MultiEdit | Runs the check on the edited file and returns the findings. The edit stands. |
 | PreToolUse on Bash | Denies with the rule text: R33 a `git commit` on `main`, R20 a test run piped into `tail`, `head`, or `grep`, R28 a commit message with AI attribution. Asks the owner before R35, a `gh pr merge` or `gh release`. |
 | PreToolUse on ExitPlanMode | R1: denies a plan without a `prior_art` section, or one whose section does not name a module, class, setting, column, flag, or dependency the plan adds. |
-| Stop | Holds the branch against `origin/main`: the check, the surface delta, and the moves pass. On any finding it blocks the stop once with the three lists. A branch that holds goes to the driver with the person's messages in the session as the task, and a picked phrase blocks the stop once, verbatim. The second stop goes through. |
+| Stop | Holds the branch against `origin/main`: the check, the surface delta, and the moves pass. On any finding it blocks the stop once with the three lists. A branch that holds goes to the pick with the person's messages in the session as the task, and a picked phrase blocks the stop once, verbatim. The second stop goes through. |
 
 The moves pass sends the catalog in `.druks/software_factory/review.md`, the
 delta, and the diff to a small model through `claude -p` and asks which moves

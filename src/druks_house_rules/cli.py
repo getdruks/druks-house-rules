@@ -4,7 +4,7 @@ import json
 import pathlib
 import sys
 
-from . import changes, config, delta, driver, moves, plugin, rules
+from . import changes, config, delta, moves, plugin, pool, rules
 from .exceptions import HouseRulesError, MissingConfigError
 
 
@@ -60,7 +60,7 @@ def _run(arguments: argparse.Namespace) -> int:
         return 0
     root = arguments.root.resolve()
     if arguments.command == "phrase":
-        pick = driver.pick(root, arguments.base, arguments.task_file.read_text())
+        pick = pool.pick(root, arguments.base, arguments.task_file.read_text())
         if pick:
             print(pick["phrase"])
             print(pick["where"])

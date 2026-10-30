@@ -12,9 +12,9 @@ class HouseRules(App):
         "as the druks-house-rules check run."
     )
 
-    driver = Agent(
+    pick = Agent(
         description="Reads a change and picks the one phrase from the pool that fits it, or none.",
-        prompt="house_rules/driver.md",
+        prompt="house_rules/pick.md",
         contract=Pick,
         include_plugins=False,
         include_mcp=False,

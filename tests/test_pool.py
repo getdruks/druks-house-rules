@@ -1,4 +1,4 @@
-"""The driver pool: every entry carries the five fields, a known theme, a count, and its
+"""The pool: every entry carries the five fields, a known theme, a count, and its
 position as its id."""
 
 import importlib.resources
