@@ -1,7 +1,7 @@
 from druks.agents import Agent
 from druks.apps import App
 
-from .contracts import Pick
+from .contracts import Nudge
 
 
 class HouseRules(App):
@@ -12,10 +12,10 @@ class HouseRules(App):
         "as the druks-house-rules check run."
     )
 
-    driver = Agent(
+    nudge = Agent(
         description="Reads a change and picks the one phrase from the pool that fits it, or none.",
-        prompt="house_rules/driver.md",
-        contract=Pick,
+        prompt="house_rules/nudge.md",
+        contract=Nudge,
         include_plugins=False,
         include_mcp=False,
     )

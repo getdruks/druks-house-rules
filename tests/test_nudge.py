@@ -1,10 +1,10 @@
-"""The drive command prints the picked phrase verbatim from the pool, or nothing."""
+"""The nudge command prints the chosen phrase verbatim from the pool, or nothing."""
 
 import json
 
 import pytest
 
-from druks_house_rules import cli, driver, moves
+from druks_house_rules import cli, moves, pool
 from tests import conftest
 
 
@@ -23,13 +23,13 @@ def branch(repository: conftest.Repository) -> conftest.Repository:
     [
         (
             json.dumps({"entry": 3, "where": "notes.py adds read beside an existing reader."}),
-            f"{driver.POOL[2]['phrase']}\nnotes.py adds read beside an existing reader.\n",
+            f"{pool.ENTRIES[2]['phrase']}\nnotes.py adds read beside an existing reader.\n",
         ),
         (json.dumps({"entry": None, "where": ""}), ""),
         ("", ""),
     ],
 )
-def test_drive_prints_the_pick(branch, monkeypatch, capsys, answer, printed):
+def test_nudge_prints_the_phrase(branch, monkeypatch, capsys, answer, printed):
     prompts = []
 
     def ask(prompt: str) -> str:
@@ -39,19 +39,19 @@ def test_drive_prints_the_pick(branch, monkeypatch, capsys, answer, printed):
     monkeypatch.setattr(moves, "ask", ask)
 
     code = cli.main(
-        ["phrase", "--base", "main", "--task-file", str(branch.root / "task.md"), str(branch.root)]
+        ["nudge", "--base", "main", "--task-file", str(branch.root / "task.md"), str(branch.root)]
     )
 
     assert (code, capsys.readouterr().out) == (0, printed)
     assert "Add a notes module." in prompts[0] and "+def read(value):" in prompts[0]
-    assert f"- id: {len(driver.POOL)}\n" in prompts[0] and driver.POOL[-1]["phrase"] in prompts[0]
+    assert f"- id: {len(pool.ENTRIES)}\n" in prompts[0] and pool.ENTRIES[-1]["phrase"] in prompts[0]
 
 
-def test_drive_refuses_an_entry_the_pool_does_not_hold(branch, monkeypatch, capsys):
+def test_nudge_refuses_an_entry_the_pool_does_not_hold(branch, monkeypatch, capsys):
     monkeypatch.setattr(moves, "ask", lambda prompt: json.dumps({"entry": 9999, "where": "x"}))
 
     code = cli.main(
-        ["phrase", "--base", "main", "--task-file", str(branch.root / "task.md"), str(branch.root)]
+        ["nudge", "--base", "main", "--task-file", str(branch.root / "task.md"), str(branch.root)]
     )
 
     assert code == 2

@@ -1,4 +1,4 @@
-# Paulo's driving phrases, one entry per phrase. README: "The driver pool".
+# Paulo's phrases, one entry per phrase. README: "The phrase pool".
 
 - id: 1
   phrase: "this is overengineered: you added all this just so the output reads nicely, when the real result is already in the structured data. kill it"

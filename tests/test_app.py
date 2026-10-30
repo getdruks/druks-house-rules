@@ -1,5 +1,5 @@
-"""The app checks each head once, posts the findings as a check run, and drives a change
-with one phrase from the pool."""
+"""The app checks each head once, posts the findings as a check run, and nudges an
+implementer with one phrase from the pool."""
 
 import json
 import subprocess
@@ -11,8 +11,8 @@ from druks.prompts import render_prompt
 from druks.testing import run_workflow
 from pydantic import ValidationError
 
-from druks_house_rules import driver
-from druks_house_rules.contracts import Pick
+from druks_house_rules import app, hooks, pool
+from druks_house_rules.contracts import Nudge
 from druks_house_rules.models import Check
 from druks_house_rules.workflows import HouseRules
 
@@ -108,22 +108,33 @@ async def test_run_posts_one_annotation_per_finding(druks_db, monkeypatch):
     assert check.conclusion == "failure"
 
 
-def test_pick_carries_the_phrase_verbatim_and_records_a_hit():
-    phrase = driver.POOL[11]["phrase"]
-    pick = Pick(entry=12, where="models.py adds a column for one edge case.")
+def test_nudge_carries_the_phrase_verbatim_and_records_a_hit():
+    phrase = pool.ENTRIES[11]["phrase"]
+    nudge = Nudge(entry=12, where="models.py adds a column for one edge case.")
 
-    assert (pick.phrase, pick.to_event()) == (
+    assert (nudge.phrase, nudge.to_event()) == (
         phrase,
         {"topic": "rule.hit", "summary": f"12: {phrase}"},
     )
-    assert Pick(entry=None, where="").to_event() == {"topic": "rule.hit", "summary": "none"}
+    assert Nudge(entry=None, where="").to_event() == {"topic": "rule.hit", "summary": "none"}
     with pytest.raises(ValidationError):
-        Pick(entry=9999, where="")
+        Nudge(entry=9999, where="")
 
 
-async def test_driver_prompt_is_the_cli_prompt():
-    rendered = await render_prompt("house_rules/driver.md", task="Add notes.", diff="+x = 1")
+async def test_nudge_prompt_is_the_cli_prompt():
+    rendered = await render_prompt("house_rules/nudge.md", task="Add notes.", diff="+x = 1")
 
-    assert rendered == driver.ENVIRONMENT.get_template("house_rules/driver.md").render(
+    assert rendered == pool.ENVIRONMENT.get_template("house_rules/nudge.md").render(
         task="Add notes.", diff="+x = 1"
     )
+
+
+@pytest.mark.parametrize(("entry", "phrase"), [(12, pool.ENTRIES[11]["phrase"]), (None, None)])
+async def test_the_implementer_hears_the_nudge(monkeypatch, entry, phrase):
+    nudge = mock.AsyncMock(return_value=Nudge(entry=entry, where=""))
+    monkeypatch.setattr(app.HouseRules, "nudge", nudge)
+    workspace = mock.Mock(get_diff=mock.AsyncMock(return_value="+x = 1"))
+
+    assert await hooks.nudge(prompt="Add notes.", workspace=workspace) == phrase
+    nudge.assert_awaited_once_with(diff="+x = 1", task="Add notes.")
+    assert hooks.implementer.id == "software_factory.implement"
