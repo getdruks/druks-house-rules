@@ -1,4 +1,4 @@
-"""The phrase command prints the picked phrase verbatim from the pool, or nothing."""
+"""The nudge command prints the chosen phrase verbatim from the pool, or nothing."""
 
 import json
 
@@ -29,7 +29,7 @@ def branch(repository: conftest.Repository) -> conftest.Repository:
         ("", ""),
     ],
 )
-def test_phrase_prints_the_pick(branch, monkeypatch, capsys, answer, printed):
+def test_nudge_prints_the_phrase(branch, monkeypatch, capsys, answer, printed):
     prompts = []
 
     def ask(prompt: str) -> str:
@@ -39,7 +39,7 @@ def test_phrase_prints_the_pick(branch, monkeypatch, capsys, answer, printed):
     monkeypatch.setattr(moves, "ask", ask)
 
     code = cli.main(
-        ["phrase", "--base", "main", "--task-file", str(branch.root / "task.md"), str(branch.root)]
+        ["nudge", "--base", "main", "--task-file", str(branch.root / "task.md"), str(branch.root)]
     )
 
     assert (code, capsys.readouterr().out) == (0, printed)
@@ -47,11 +47,11 @@ def test_phrase_prints_the_pick(branch, monkeypatch, capsys, answer, printed):
     assert f"- id: {len(pool.ENTRIES)}\n" in prompts[0] and pool.ENTRIES[-1]["phrase"] in prompts[0]
 
 
-def test_phrase_refuses_an_entry_the_pool_does_not_hold(branch, monkeypatch, capsys):
+def test_nudge_refuses_an_entry_the_pool_does_not_hold(branch, monkeypatch, capsys):
     monkeypatch.setattr(moves, "ask", lambda prompt: json.dumps({"entry": 9999, "where": "x"}))
 
     code = cli.main(
-        ["phrase", "--base", "main", "--task-file", str(branch.root / "task.md"), str(branch.root)]
+        ["nudge", "--base", "main", "--task-file", str(branch.root / "task.md"), str(branch.root)]
     )
 
     assert code == 2

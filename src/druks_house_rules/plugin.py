@@ -87,9 +87,9 @@ def _stop(cwd: str, transcript: pathlib.Path) -> dict | None:
                 f"\nMoves from {moves.CATALOG}; apply each one or say why not:\n{_lines(applied)}"
             )
         return {"decision": "block", "reason": "\n".join(reason)}
-    pick = pool.pick(root, base, _task(transcript))
-    if pick:
-        return {"decision": "block", "reason": pick["phrase"]}
+    nudge = pool.nudge(root, base, _task(transcript))
+    if nudge:
+        return {"decision": "block", "reason": nudge["phrase"]}
     return None
 
 

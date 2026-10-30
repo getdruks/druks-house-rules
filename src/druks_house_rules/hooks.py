@@ -7,6 +7,6 @@ implementer = Agent.get("software_factory.implement")
 
 
 @implementer.after_agent
-async def phrase(*, prompt: str, workspace: RepoWorkspace) -> str | None:
-    pick = await HouseRules.pick(diff=await workspace.get_diff(), task=prompt)
-    return pick.phrase
+async def nudge(*, prompt: str, workspace: RepoWorkspace) -> str | None:
+    nudge = await HouseRules.nudge(diff=await workspace.get_diff(), task=prompt)
+    return nudge.phrase

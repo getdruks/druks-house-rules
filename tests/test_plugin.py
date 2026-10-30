@@ -115,11 +115,11 @@ def test_stop_with_nothing_added_answers_nothing(druks_repository, no_claude):
 def test_a_change_that_holds_gets_one_phrase_once(druks_repository, no_claude, monkeypatch):
     asked = []
 
-    def pick(root, base, task):
+    def nudge(root, base, task):
         asked.append((base, task))
         return {"entry": 3, "phrase": "Is that the simplest way?", "where": "notes.py"}
 
-    monkeypatch.setattr("druks_house_rules.pool.pick", pick)
+    monkeypatch.setattr("druks_house_rules.pool.nudge", nudge)
 
     answer = plugin.run(stop(druks_repository.root, stop_hook_active=False))
 
