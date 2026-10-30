@@ -1,4 +1,4 @@
-"""The drive command prints the picked phrase verbatim from the pool, or nothing."""
+"""The phrase command prints the picked phrase verbatim from the pool, or nothing."""
 
 import json
 

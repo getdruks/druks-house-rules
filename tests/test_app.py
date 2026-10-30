@@ -1,5 +1,5 @@
-"""The app checks each head once, posts the findings as a check run, and drives a change
-with one phrase from the pool."""
+"""The app checks each head once, posts the findings as a check run, and picks one phrase
+from the pool for a change."""
 
 import json
 import subprocess
@@ -135,6 +135,6 @@ async def test_the_implementer_hears_the_picked_phrase(monkeypatch, entry, phras
     monkeypatch.setattr(app.HouseRules, "driver", pick)
     workspace = mock.Mock(get_diff=mock.AsyncMock(return_value="+x = 1"))
 
-    assert await hooks.drive(prompt="Add notes.", workspace=workspace) == phrase
+    assert await hooks.phrase(prompt="Add notes.", workspace=workspace) == phrase
     pick.assert_awaited_once_with(diff="+x = 1", task="Add notes.")
     assert hooks.implementer.id == "software_factory.implement"

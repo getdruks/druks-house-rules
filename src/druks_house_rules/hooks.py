@@ -7,6 +7,6 @@ implementer = Agent.get("software_factory.implement")
 
 
 @implementer.after_agent
-async def drive(*, prompt: str, workspace: RepoWorkspace) -> str | None:
+async def phrase(*, prompt: str, workspace: RepoWorkspace) -> str | None:
     pick = await HouseRules.driver(diff=await workspace.get_diff(), task=prompt)
     return pick.phrase
