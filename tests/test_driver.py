@@ -39,7 +39,7 @@ def test_drive_prints_the_pick(branch, monkeypatch, capsys, answer, printed):
     monkeypatch.setattr(moves, "ask", ask)
 
     code = cli.main(
-        ["drive", "--base", "main", "--task-file", str(branch.root / "task.md"), str(branch.root)]
+        ["phrase", "--base", "main", "--task-file", str(branch.root / "task.md"), str(branch.root)]
     )
 
     assert (code, capsys.readouterr().out) == (0, printed)
@@ -51,7 +51,7 @@ def test_drive_refuses_an_entry_the_pool_does_not_hold(branch, monkeypatch, caps
     monkeypatch.setattr(moves, "ask", lambda prompt: json.dumps({"entry": 9999, "where": "x"}))
 
     code = cli.main(
-        ["drive", "--base", "main", "--task-file", str(branch.root / "task.md"), str(branch.root)]
+        ["phrase", "--base", "main", "--task-file", str(branch.root / "task.md"), str(branch.root)]
     )
 
     assert code == 2

@@ -80,10 +80,10 @@ choose the one phrase that fits an implementer's output, and the implementer
 finds the problem itself. The test suite rejects an entry that misses a field,
 names an unknown theme, or breaks the id order.
 
-## Drive a change
+## Print the phrase that fits a change
 
 ```bash
-druks-house-rules drive --base origin/main --task-file task.md
+druks-house-rules phrase --base origin/main --task-file task.md
 ```
 
 The command reads the working tree against the merge base and the task the
