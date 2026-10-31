@@ -1,8 +1,10 @@
 """The process rules on a Bash command: R33, R35, R20, R28."""
 
+import pathlib
+
 import pytest
 
-from druks_house_rules import bash
+from druks_house_rules import bash, checkout
 
 
 @pytest.mark.parametrize(
@@ -35,10 +37,35 @@ from druks_house_rules import bash
         ("git commit -m 'DRU-1 -- Add notes' && git push", "main", ["R33"]),
     ],
 )
-def test_command(command, branch, rules):
-    assert [finding.rule for finding in bash.check(command, branch)] == rules
+def test_command(command, branch, rules, monkeypatch):
+    monkeypatch.setattr(checkout.Checkout, "branch", lambda self: branch)
+    findings = bash.check(command, pathlib.Path("."))
+    assert [finding.rule for finding in findings] == rules
 
 
-def test_unbalanced_quotes_still_read():
-    findings = bash.check("git commit -m 'DRU-1 -- Add notes", "main")
+def test_unbalanced_quotes_still_read(monkeypatch):
+    monkeypatch.setattr(checkout.Checkout, "branch", lambda self: "main")
+    findings = bash.check("git commit -m 'DRU-1 -- Add notes", pathlib.Path("."))
     assert [finding.rule for finding in findings] == ["R33"]
+
+
+@pytest.mark.parametrize(
+    ("command", "rules"),
+    [
+        ("git -C {branch} commit -m notes", []),
+        ("cd {branch} && git commit -m notes", []),
+        ("cd {branch} && git -C {main} commit -m notes", ["R33"]),
+        ("git -C {branch} log && git commit -m notes", ["R33"]),
+        ("git -C $CHECKOUT commit -m notes", ["R33"]),
+    ],
+)
+def test_a_commit_holds_the_branch_it_lands_on(command, rules, tmp_path, monkeypatch):
+    main = tmp_path / "main"
+    branch = tmp_path / "branch"
+    main.mkdir()
+    branch.mkdir()
+    monkeypatch.setattr(
+        checkout.Checkout, "branch", lambda self: "main" if self.root == main else "notes"
+    )
+    findings = bash.check(command.format(main=main, branch=branch), main)
+    assert [finding.rule for finding in findings] == rules

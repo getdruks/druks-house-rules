@@ -5,6 +5,7 @@ JSON on stdout. Outside a repository with ``druks-house-rules.toml``, every
 event answers nothing.
 """
 
+import hashlib
 import json
 import pathlib
 import subprocess
@@ -15,6 +16,7 @@ from .exceptions import ConfigError
 from .findings import Finding
 
 EDIT_TOOLS = frozenset({"Edit", "Write", "MultiEdit"})
+LAST_STOP = "druks-house-rules-last-stop"
 
 
 def run(event: Mapping) -> dict | None:
@@ -22,13 +24,13 @@ def run(event: Mapping) -> dict | None:
     tool = event.get("tool_name")
     tool_input = event.get("tool_input") or {}
     if name == "PreToolUse" and tool == "Bash":
-        return _permission(bash.check(tool_input.get("command", ""), _branch(event["cwd"])))
+        return _permission(bash.check(tool_input.get("command", ""), pathlib.Path(event["cwd"])))
     if name == "PreToolUse" and tool == "ExitPlanMode":
         return _permission(plans.check(tool_input.get("plan", "")))
     if name == "PostToolUse" and tool in EDIT_TOOLS:
         return _edit(pathlib.Path(tool_input["file_path"]))
     if name == "Stop" and not event.get("stop_hook_active"):
-        return _stop(event["cwd"], pathlib.Path(event["transcript_path"]))
+        return _stop(event["cwd"], pathlib.Path(event["transcript_path"]), event["session_id"])
     return None
 
 
@@ -59,9 +61,10 @@ def _edit(path: pathlib.Path) -> dict | None:
     return {"decision": "block", "reason": _lines(findings)}
 
 
-def _stop(cwd: str, transcript: pathlib.Path) -> dict | None:
+def _stop(cwd: str, transcript: pathlib.Path, session_id: str) -> dict | None:
     """Hold the change to the rules, the surface and the moves. A change that holds
-    gets one phrase from the pool as the agent's next turn."""
+    gets one phrase from the pool as the agent's next turn. The rules hold at every
+    stop; the rest asks once per change, because nothing records an answer to it."""
     repository = _repository(pathlib.Path(cwd))
     if not repository:
         return None
@@ -70,9 +73,10 @@ def _stop(cwd: str, transcript: pathlib.Path) -> dict | None:
     if not base:
         return None
     change = changes.Change(root, settings, base, None)
+    moved = _moved(change, session_id)
     findings = rules.check(change)
-    surface = delta.surface(change)
-    applied = moves.check(change)
+    surface = delta.surface(change) if moved else []
+    applied = moves.check(change) if moved else []
     if findings or surface or applied:
         reason = [f"druks-house-rules held the change against {base}."]
         if findings:
@@ -87,10 +91,22 @@ def _stop(cwd: str, transcript: pathlib.Path) -> dict | None:
                 f"\nMoves from {moves.CATALOG}; apply each one or say why not:\n{_lines(applied)}"
             )
         return {"decision": "block", "reason": "\n".join(reason)}
-    nudge = pool.nudge(root, base, _task(transcript))
+    nudge = pool.nudge(root, base, _task(transcript)) if moved else None
     if nudge:
         return {"decision": "block", "reason": nudge["phrase"]}
     return None
+
+
+def _moved(change: changes.Change, session_id: str) -> bool:
+    """Whether the change differs from what this session's last stop saw. The record
+    sits in the git directory, so each worktree keeps its own."""
+    digest = hashlib.sha256(change.checkout.diff(change.base_commit).encode()).hexdigest()
+    record = f"{session_id} {digest}"
+    last_stop = change.root / change.checkout.git("rev-parse", "--git-path", LAST_STOP).strip()
+    if last_stop.is_file() and last_stop.read_text() == record:
+        return False
+    last_stop.write_text(record)
+    return True
 
 
 def _task(transcript: pathlib.Path) -> str:
@@ -119,10 +135,6 @@ def _repository(directory: pathlib.Path) -> tuple[pathlib.Path, config.Config] |
         return root, config.load(root)
     except ConfigError:
         return None
-
-
-def _branch(cwd: str) -> str | None:
-    return checkout.Checkout(pathlib.Path(cwd)).branch()
 
 
 def _lines(items) -> str:

@@ -41,6 +41,7 @@ def stop(root: pathlib.Path, **fields) -> dict:
     """A Stop event over a session in which the person asked for a notes reader."""
     transcript = root.parent / "transcript.jsonl"
     transcript.write_text("\n".join(json.dumps(entry) for entry in TRANSCRIPT))
+    fields.setdefault("session_id", "session-1")
     return event("Stop", root, transcript_path=str(transcript), **fields)
 
 
@@ -126,6 +127,50 @@ def test_a_change_that_holds_gets_one_phrase_once(druks_repository, no_claude, m
     assert answer == {"decision": "block", "reason": "Is that the simplest way?"}
     assert asked == [("origin/main", "Add a notes reader.\n\nTest it.")]
     assert not plugin.run(stop(druks_repository.root, stop_hook_active=True))
+
+
+def test_a_later_stop_over_the_same_change_asks_nothing(druks_repository, no_claude):
+    druks_repository.add_tree(conftest.FIXTURES / "delta" / "head")
+    assert plugin.run(stop(druks_repository.root, stop_hook_active=False))
+    assert not plugin.run(stop(druks_repository.root, stop_hook_active=False))
+
+    other_session = stop(druks_repository.root, stop_hook_active=False, session_id="session-2")
+    assert "module backend.druks.notes" in plugin.run(other_session)["reason"]
+
+    (druks_repository.root / "backend" / "druks" / "notes.py").write_text("y = 2\n")
+    moved = stop(druks_repository.root, stop_hook_active=False, session_id="session-2")
+    assert "module backend.druks.notes" in plugin.run(moved)["reason"]
+
+
+def test_a_finding_holds_every_stop(druks_repository, no_claude):
+    (druks_repository.root / "backend" / "druks" / "utils.py").write_text("x = 1\n")
+    plugin.run(stop(druks_repository.root, stop_hook_active=False))
+    reason = plugin.run(stop(druks_repository.root, stop_hook_active=False))["reason"]
+    assert "R25 utils.py names a mechanism" in reason
+    assert "module backend.druks.utils" not in reason
+
+
+def test_the_nudge_runs_once_per_change(druks_repository, no_claude, monkeypatch):
+    asked = []
+
+    def nudge(root, base, task):
+        asked.append(base)
+        return {"entry": 3, "phrase": "Is that the simplest way?", "where": "notes.py"}
+
+    monkeypatch.setattr("druks_house_rules.pool.nudge", nudge)
+    plugin.run(stop(druks_repository.root, stop_hook_active=False))
+    assert not plugin.run(stop(druks_repository.root, stop_hook_active=False))
+    assert asked == ["origin/main"]
+
+
+def test_a_commit_in_another_checkout_passes_from_main(druks_repository, tmp_path):
+    druks_repository.git("checkout", "-q", "main")
+    worktree = tmp_path / "notes"
+    druks_repository.git("worktree", "add", "-q", str(worktree), "notes")
+    tool_input = {"command": f"git -C {worktree} commit -m notes"}
+    assert not plugin.run(
+        event("PreToolUse", druks_repository.root, tool_name="Bash", tool_input=tool_input)
+    )
 
 
 def test_bash_on_main_is_denied(druks_repository):

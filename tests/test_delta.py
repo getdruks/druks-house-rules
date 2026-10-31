@@ -62,3 +62,34 @@ def test_every_kind(repository, capsys):
         "pyproject.toml:3 dependency redis",
         "tests/source ratio 0.15 (2 test lines, 13 source lines)",
     ]
+
+
+def _surface_of(repository, capsys, before: str, after: str) -> list[str]:
+    repository.configure([])
+    (repository.root / "app.py").write_text(before)
+    repository.commit()
+    repository.git("checkout", "-q", "-b", "change")
+    (repository.root / "app.py").write_text(after)
+    return [line for line in run(repository, capsys) if "try/except" in line]
+
+
+READ = "def read():\n    try:\n        go()\n    except {}:\n        pass\n"
+
+
+def test_a_try_finally_is_not_a_try_except(repository, capsys):
+    after = "def read():\n    try:\n        go()\n    finally:\n        stop()\n"
+    assert _surface_of(repository, capsys, "def read():\n    go()\n", after) == []
+
+
+def test_a_widened_handler_is_the_same_try(repository, capsys):
+    before = READ.format("KeyError")
+    after = READ.format("(KeyError, IndexError)")
+    assert _surface_of(repository, capsys, before, after) == []
+
+
+def test_a_second_try_with_the_same_handler_is_new(repository, capsys):
+    before = READ.format("KeyError")
+    after = before + "    try:\n        go()\n    except KeyError:\n        pass\n"
+    assert _surface_of(repository, capsys, before, after) == [
+        "app.py:6 try/except read except KeyError"
+    ]

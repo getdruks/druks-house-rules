@@ -7,6 +7,7 @@ author: which existing primitive does this, or why is it needed.
 """
 
 import ast
+import collections
 import dataclasses
 import pathlib
 import re
@@ -15,6 +16,7 @@ import tomllib
 from . import changes
 
 COLUMN_CALLS = frozenset({"mapped_column", "Column"})
+TRY = "try/except"
 DEPENDENCY_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*")
 MIGRATION = re.compile(r"(^|/)migrations/versions/[^/]+\.py$")
 TEST_PATH = re.compile(r"(^|/)tests?/|(^|/)test_[^/]*\.py$|_test\.py$")
@@ -44,10 +46,8 @@ def surface(change: changes.Change) -> list[Item]:
         if TEST_PATH.search(module.path):
             continue
         before = change.checkout.file_at(change.base_commit, module.path)
-        base_keys = _keys(ast.parse(before)) if before else set()
-        for key, item in _keys_with_lines(module).items():
-            if key not in base_keys:
-                items.append(Item(module.path, item[0], item[1], item[2]))
+        for line, kind, name in _added(module.tree, ast.parse(before or "")):
+            items.append(Item(module.path, line, kind, name))
     items.extend(_dependencies(change))
     return sorted(items)
 
@@ -73,20 +73,30 @@ def _module_name(path: str) -> str:
     return ".".join(parts)
 
 
-def _keys(tree: ast.Module) -> set[tuple[str, str]]:
-    return set(_walk(tree, ""))
+def _added(tree: ast.Module, base: ast.Module) -> list[tuple[int, str, str]]:
+    """The items the tree holds beyond the base, one per occurrence. A ``try`` whose
+    handlers changed is the same ``try``, so it pairs with the one its function lost."""
+    unmatched = collections.Counter((kind, name) for _, kind, name in _walk_with_nodes(base, ""))
+    added = []
+    for node, kind, name in _walk_with_nodes(tree, ""):
+        if unmatched[kind, name]:
+            unmatched[kind, name] -= 1
+        else:
+            added.append((node.lineno, kind, name))
+    edited = collections.Counter(
+        _function(name) for kind, name in unmatched.elements() if kind == TRY
+    )
+    kept = []
+    for line, kind, name in added:
+        if kind == TRY and edited[_function(name)]:
+            edited[_function(name)] -= 1
+        else:
+            kept.append((line, kind, name))
+    return kept
 
 
-def _keys_with_lines(module: changes.Module) -> dict[tuple[str, str], tuple[int, str, str]]:
-    keys = {}
-    for node, kind, name in _walk_with_nodes(module.tree, ""):
-        keys.setdefault((kind, name), (node.lineno, kind, name))
-    return keys
-
-
-def _walk(tree: ast.Module, prefix: str):
-    for _, kind, name in _walk_with_nodes(tree, prefix):
-        yield kind, name
+def _function(try_name: str) -> str:
+    return try_name.partition(" except ")[0]
 
 
 def _walk_with_nodes(tree: ast.AST, prefix: str):
@@ -104,10 +114,12 @@ def _walk_with_nodes(tree: ast.AST, prefix: str):
             yield from _optional_parameters(node, qualname)
             yield from _walk_with_nodes(node, f"{qualname}.")
         elif isinstance(node, ast.Try):
-            handlers = ", ".join(
-                ast.unparse(handler.type) if handler.type else "bare" for handler in node.handlers
-            )
-            yield node, "try/except", f"{prefix.rstrip('.') or '<module>'} except {handlers}"
+            if node.handlers:
+                handlers = ", ".join(
+                    ast.unparse(handler.type) if handler.type else "bare"
+                    for handler in node.handlers
+                )
+                yield node, TRY, f"{prefix.rstrip('.') or '<module>'} except {handlers}"
             yield from _walk_with_nodes(node, prefix)
         else:
             yield from _walk_with_nodes(node, prefix)

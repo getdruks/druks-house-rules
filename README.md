@@ -151,9 +151,9 @@ repository that holds `.druks/house_rules/config.yml`, every hook answers nothin
 | Hook | What it does |
 | --- | --- |
 | PostToolUse on Edit, Write, and MultiEdit | Runs the check on the edited file and returns the findings. The edit stands. |
-| PreToolUse on Bash | Denies with the rule text: R33 a `git commit` on `main`, R20 a test run piped into `tail`, `head`, or `grep`, R28 a commit message with AI attribution. Asks the owner before R35, a `gh pr merge` or `gh release`. |
+| PreToolUse on Bash | Denies with the rule text: R33 a `git commit` that lands on `main`, read from the `cd` and `git -C` in the command, R20 a test run piped into `tail`, `head`, or `grep`, R28 a commit message with AI attribution. Asks the owner before R35, a `gh pr merge` or `gh release`. |
 | PreToolUse on ExitPlanMode | R1: denies a plan without a `prior_art` section, or one whose section does not name a module, class, setting, column, flag, or dependency the plan adds. |
-| Stop | Holds the branch against `origin/main`: the check, the surface delta, and the moves pass. On any finding it blocks the stop once with the three lists. A branch that holds goes to the nudge with the person's messages in the session as the task, and its phrase blocks the stop once, verbatim. The second stop goes through. |
+| Stop | Holds the branch against `origin/main`: the check, the surface delta, and the moves pass. On any finding it blocks the stop once with the three lists. A branch that holds goes to the nudge with the person's messages in the session as the task, and its phrase blocks the stop once, verbatim. The second stop goes through. The surface delta, the moves pass, and the nudge run once per change in a session: a later stop over the same diff answers only to the check. |
 
 The moves pass sends the catalog in `.druks/software_factory/review.md`, the
 delta, and the diff to a small model through `claude -p` and asks which moves
