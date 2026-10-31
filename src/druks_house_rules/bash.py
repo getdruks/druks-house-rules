@@ -2,14 +2,13 @@
 
 R33: no commit on ``main``; GitHub refuses the push. R35: a merge or a release
 waits for the owner's word, so the hook asks instead of denying. R20: no test run
-piped into ``tail``, ``head``, or ``grep``. R28: no AI attribution in a commit
-message.
+piped into ``tail``, ``head``, or ``grep``.
 """
 
 import pathlib
 import shlex
 
-from . import checkout, commits
+from . import checkout
 from .findings import Finding
 
 SEPARATORS = frozenset({"&&", "||", ";", "&", "|"})
@@ -40,12 +39,6 @@ def check(command: str, cwd: pathlib.Path) -> list[Finding]:
         if verb in {"gh pr merge", "gh release"}:
             findings.append(
                 Finding("command", 1, "R35", f"{verb}: the owner decides; ask before you run it")
-            )
-        if verb == "git commit" and commits.ATTRIBUTION.search(command):
-            findings.append(
-                Finding(
-                    "command", 1, "R28", "attribution trailer in the commit message; drop the line"
-                )
             )
     for (_, words), (operator, reader) in zip(pipeline, pipeline[1:], strict=False):
         if operator == "|" and _is_test_run(words) and reader and reader[0] in READERS:

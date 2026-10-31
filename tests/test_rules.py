@@ -75,7 +75,6 @@ def test_R28_commits(repository, capsys, verdict):
         assert [line.split(" R28 ")[1] for line in lines] == [
             "subject is '<ticket> -- <what the change does>'",
             "subject names a pull request number; GitHub adds it",
-            "attribution line: Co-Authored-By: Claude <noreply@anthropic.com>",
         ]
 
 
