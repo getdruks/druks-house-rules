@@ -7,7 +7,7 @@ repository's `.druks/software_factory/review.md` and the Druks reviewer applies 
 ## Install
 
 ```bash
-uv pip install "git+https://github.com/getdruks/druks-house-rules@v0.0.5"
+uv pip install "git+https://github.com/getdruks/druks-house-rules@v0.0.6"
 ```
 
 ## Check a change
@@ -125,7 +125,7 @@ nothing twice.
 Install the extra in the Druks installation and build its sandbox template:
 
 ```bash
-uv pip install "druks-house-rules[app] @ git+https://github.com/getdruks/druks-house-rules@v0.0.5"
+uv pip install "druks-house-rules[app] @ git+https://github.com/getdruks/druks-house-rules@v0.0.6"
 druks init-db
 druks sandboxes build
 ```
