@@ -710,7 +710,7 @@ dependencies = [
 
 [[package]]
 name = "druks-house-rules"
-version = "0.0.6"
+version = "0.0.7"
 source = { editable = "." }
 dependencies = [
     { name = "ast-grep-cli" },
