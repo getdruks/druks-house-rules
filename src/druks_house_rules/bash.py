@@ -6,9 +6,10 @@ piped into ``tail``, ``head``, or ``grep``. R28: no AI attribution in a commit
 message.
 """
 
+import pathlib
 import shlex
 
-from . import commits
+from . import checkout, commits
 from .findings import Finding
 
 SEPARATORS = frozenset({"&&", "||", ";", "&", "|"})
@@ -18,13 +19,16 @@ PROTECTED_BRANCH = "main"
 ASKED_RULES = frozenset({"R35"})
 
 
-def check(command: str, branch: str | None) -> list[Finding]:
-    """The findings on one command, given the branch the working tree has out."""
+def check(command: str, cwd: pathlib.Path) -> list[Finding]:
+    """The findings on one command that the session runs from ``cwd``."""
     findings = []
     pipeline = _pipeline(command)
+    directory = cwd
     for _, words in pipeline:
         verb = _verb(words)
-        if branch == PROTECTED_BRANCH and verb == "git commit":
+        if words[:1] == ["cd"] and words[1:]:
+            directory = _enter(directory, words[1])
+        if verb == "git commit" and _branch(words, directory, cwd) == PROTECTED_BRANCH:
             findings.append(
                 Finding(
                     "command",
@@ -54,6 +58,24 @@ def check(command: str, branch: str | None) -> list[Finding]:
                 )
             )
     return findings
+
+
+def _branch(words: list[str], directory: pathlib.Path, cwd: pathlib.Path) -> str | None:
+    """The branch a git command lands on. A path the shell has yet to expand is not
+    a directory here, so the command counts as running in the session's folder."""
+    arguments = iter(words[1:])
+    for word in arguments:
+        if word == "-C":
+            directory = _enter(directory, next(arguments, ""))
+        elif word == "-c":
+            next(arguments, None)
+        elif not word.startswith("-"):
+            break
+    return checkout.Checkout(directory if directory.is_dir() else cwd).branch()
+
+
+def _enter(directory: pathlib.Path, path: str) -> pathlib.Path:
+    return directory / pathlib.Path(path).expanduser()
 
 
 def _pipeline(command: str) -> list[tuple[str, list[str]]]:
