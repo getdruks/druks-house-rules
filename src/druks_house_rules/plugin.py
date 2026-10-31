@@ -77,7 +77,8 @@ def _stop(cwd: str, transcript: pathlib.Path, session_id: str) -> dict | None:
     findings = rules.check(change)
     surface = delta.surface(change) if moved else []
     applied = moves.check(change) if moved else []
-    if findings or surface or applied:
+    test_heavy = moved and delta.is_test_heavy(change)
+    if findings or surface or applied or test_heavy:
         reason = [f"druks-house-rules held the change against {base}."]
         if findings:
             reason.append(f"\nFindings; fix each one:\n{_lines(findings)}")
@@ -89,6 +90,11 @@ def _stop(cwd: str, transcript: pathlib.Path, session_id: str) -> dict | None:
         if applied:
             reason.append(
                 f"\nMoves from {moves.CATALOG}; apply each one or say why not:\n{_lines(applied)}"
+            )
+        if test_heavy:
+            reason.append(
+                "\nThe tests outgrow the change; delete each test that passes without it:"
+                f"\n{delta.ratio(change)}"
             )
         return {"decision": "block", "reason": "\n".join(reason)}
     nudge = pool.nudge(root, base, _task(transcript)) if moved else None

@@ -142,6 +142,17 @@ def test_a_later_stop_over_the_same_change_asks_nothing(druks_repository, no_cla
     assert "module backend.druks.notes" in plugin.run(moved)["reason"]
 
 
+@pytest.mark.parametrize(("test_lines", "asked"), [(33, False), (34, True)])
+def test_tests_that_outgrow_the_change_are_asked_about(
+    druks_repository, no_claude, test_lines, asked
+):
+    (druks_repository.root / "notes.py").write_text("x = 1\n")
+    (druks_repository.root / "test_notes.py").write_text("x = 1\n" * test_lines)
+    druks_repository.commit("DRU-1 -- Add notes")
+    reason = plugin.run(stop(druks_repository.root, stop_hook_active=False))["reason"]
+    assert ("delete each test that passes without it" in reason) is asked
+
+
 def test_a_finding_holds_every_stop(druks_repository, no_claude):
     (druks_repository.root / "backend" / "druks" / "utils.py").write_text("x = 1\n")
     plugin.run(stop(druks_repository.root, stop_hook_active=False))

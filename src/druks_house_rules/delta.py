@@ -54,6 +54,19 @@ def surface(change: changes.Change) -> list[Item]:
 
 def ratio(change: changes.Change) -> str:
     """One line: added test lines against added source lines, Python only."""
+    tests, source = _added_lines(change)
+    value = f"{tests / source:.2f}" if source else "n/a"
+    return f"tests/source ratio {value} ({tests} test lines, {source} source lines)"
+
+
+def is_test_heavy(change: changes.Change) -> bool:
+    """Whether the added tests pass 3 lines per source line plus 30. The flat 30 lets a
+    small fix keep its one test, which a plain ratio would flag."""
+    tests, source = _added_lines(change)
+    return source > 0 and tests > 3 * source + 30
+
+
+def _added_lines(change: changes.Change) -> tuple[int, int]:
     tests = source = 0
     for path, count in change.checkout.added_lines(change.base_commit).items():
         if not path.endswith(".py") or change.config.excluded(path):
@@ -62,8 +75,7 @@ def ratio(change: changes.Change) -> str:
             tests += count
         else:
             source += count
-    value = f"{tests / source:.2f}" if source else "n/a"
-    return f"tests/source ratio {value} ({tests} test lines, {source} source lines)"
+    return tests, source
 
 
 def _module_name(path: str) -> str:
