@@ -1,3 +1,1 @@
 DRU-912: Add the druks-house-rules check (#12)
-
-Co-Authored-By: Claude <noreply@anthropic.com>

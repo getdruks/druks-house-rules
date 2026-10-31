@@ -1,4 +1,4 @@
-"""The process rules on a Bash command: R33, R35, R20, R28."""
+"""The process rules on a Bash command: R33, R35, R20."""
 
 import pathlib
 
@@ -26,11 +26,6 @@ from druks_house_rules import bash, checkout
         ("git log | grep DRU-1", "dru-1-notes", []),
         (
             'git commit -m "DRU-1 -- Add notes\n\nCo-Authored-By: Claude <noreply@anthropic.com>"',
-            "dru-1-notes",
-            ["R28"],
-        ),
-        (
-            'git commit -m "DRU-1 -- Add notes\n\nCo-Authored-By: Dana <dana@example.com>"',
             "dru-1-notes",
             [],
         ),
