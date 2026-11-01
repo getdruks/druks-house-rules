@@ -151,7 +151,7 @@ repository that holds `.druks/house_rules/config.yml`, every hook answers nothin
 | Hook | What it does |
 | --- | --- |
 | PostToolUse on Edit, Write, and MultiEdit | Runs the check on the edited file and returns the findings. The edit stands. |
-| PreToolUse on Bash | Denies with the rule text: R33 a `git commit` that lands on `main`, read from the `cd` and `git -C` in the command, R20 a test run piped into `tail`, `head`, or `grep`. Asks the owner before R35, a `gh pr merge` or `gh release`. |
+| PreToolUse on Bash | Denies with the rule text: R33 a `git commit` that lands on `main`, read from the `cd` and `git -C` in the command, R20 a test run piped into `tail`, `head`, or `grep`, R27 a `gh pr create` or `gh pr edit` body given by `--body` or `--body-file`, or in a heredoc, in a repository that runs R27. Asks the owner before R35, a `gh pr merge` or `gh release`. |
 | PreToolUse on ExitPlanMode | R1: denies a plan without a `prior_art` section, or one whose section does not name a module, class, setting, column, flag, or dependency the plan adds. |
 | Stop | Holds the branch against `origin/main`: the check, the surface delta, the moves pass, and the test size. On any finding it blocks the stop once with the lists. The test size asks when a change adds more than 3 test lines per source line plus 30. A branch that holds goes to the nudge with the person's messages in the session as the task, and its phrase blocks the stop once, verbatim. The second stop goes through. The surface delta, the moves pass, the test size, and the nudge run once per change in a session: a later stop over the same diff answers only to the check. |
 

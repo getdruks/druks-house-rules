@@ -3,6 +3,7 @@
 import dataclasses
 import pathlib
 import re
+import subprocess
 from collections.abc import Mapping
 
 import yaml
@@ -67,6 +68,20 @@ class Config:
 
     def excepted(self, rule: str, path: str) -> bool:
         return any(pattern.match(path) for pattern in self.exceptions.get(rule, ()))
+
+
+def find_repository(directory: pathlib.Path) -> tuple[pathlib.Path, Config] | None:
+    """The checkout root and its configuration, or None outside a configured repository."""
+    toplevel = subprocess.run(
+        ["git", "rev-parse", "--show-toplevel"], cwd=directory, capture_output=True, text=True
+    )
+    if toplevel.returncode:
+        return None
+    root = pathlib.Path(toplevel.stdout.strip())
+    try:
+        return root, load(root)
+    except ConfigError:
+        return None
 
 
 def load(root: pathlib.Path) -> Config:

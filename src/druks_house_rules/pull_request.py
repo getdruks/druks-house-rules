@@ -15,8 +15,12 @@ ATTRIBUTION = re.compile(r"co-authored-by", re.IGNORECASE)
 def check(change: changes.Change) -> list[Finding]:
     if not change.pull_request:
         return []
+    return check_body(change.pull_request.body)
+
+
+def check_body(body: str) -> list[Finding]:
     findings = []
-    for number, line in enumerate(change.pull_request.body.splitlines(), start=1):
+    for number, line in enumerate(body.splitlines(), start=1):
         if SECTION.match(line):
             findings.append(Finding("pr-body", number, "R27", f"section {line.strip()!r}; drop it"))
         if ATTRIBUTION.search(line):
