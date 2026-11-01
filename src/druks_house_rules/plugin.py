@@ -8,11 +8,9 @@ event answers nothing.
 import hashlib
 import json
 import pathlib
-import subprocess
 from collections.abc import Mapping
 
 from . import bash, changes, checkout, config, delta, moves, plans, pool, rules
-from .exceptions import ConfigError
 from .findings import Finding
 
 EDIT_TOOLS = frozenset({"Edit", "Write", "MultiEdit"})
@@ -49,7 +47,7 @@ def _permission(findings: list[Finding]) -> dict | None:
 
 
 def _edit(path: pathlib.Path) -> dict | None:
-    repository = _repository(path.parent)
+    repository = config.find_repository(path.parent)
     if not repository:
         return None
     root, settings = repository
@@ -65,7 +63,7 @@ def _stop(cwd: str, transcript: pathlib.Path, session_id: str) -> dict | None:
     """Hold the change to the rules, the surface and the moves. A change that holds
     gets one phrase from the pool as the agent's next turn. The rules hold at every
     stop; the rest asks once per change, because nothing records an answer to it."""
-    repository = _repository(pathlib.Path(cwd))
+    repository = config.find_repository(pathlib.Path(cwd))
     if not repository:
         return None
     root, settings = repository
@@ -127,20 +125,6 @@ def _task(transcript: pathlib.Path) -> str:
             else:
                 messages.extend(block["text"] for block in content if block["type"] == "text")
     return "\n\n".join(messages)
-
-
-def _repository(directory: pathlib.Path) -> tuple[pathlib.Path, config.Config] | None:
-    """The checkout root and its configuration, or None outside a configured repository."""
-    toplevel = subprocess.run(
-        ["git", "rev-parse", "--show-toplevel"], cwd=directory, capture_output=True, text=True
-    )
-    if toplevel.returncode:
-        return None
-    root = pathlib.Path(toplevel.stdout.strip())
-    try:
-        return root, config.load(root)
-    except ConfigError:
-        return None
 
 
 def _lines(items) -> str:
