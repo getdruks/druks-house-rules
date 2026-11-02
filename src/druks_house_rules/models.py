@@ -8,7 +8,7 @@ from . import config
 
 
 class Check(StoredSubject):
-    """One pull request head, title, and body held to the rules."""
+    """One pull request head, base, title, and body held to the rules."""
 
     repo: Mapped[str]
     pr_number: Mapped[int]

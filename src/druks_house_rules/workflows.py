@@ -52,7 +52,12 @@ class HouseRules(Workflow):
         body: str,
     ) -> None:
         check = await Check.get_or_none(
-            repo=repo, pr_number=pr_number, head_sha=head_sha, title=title, body=body
+            repo=repo,
+            pr_number=pr_number,
+            head_sha=head_sha,
+            base_branch=base_branch,
+            title=title,
+            body=body,
         )
         if not check:
             check = await Check.create(
