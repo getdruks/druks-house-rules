@@ -1,5 +1,5 @@
-"""The app checks each head once, posts the findings as a check run, and nudges an
-implementer with one phrase from the pool."""
+"""The app checks each head once per base, title, and body, posts the findings as a
+check run, and nudges an implementer with one phrase from the pool."""
 
 import json
 import subprocess
@@ -26,7 +26,7 @@ HEAD = {
 }
 
 
-async def test_dispatch_starts_one_run_per_head_title_and_body(druks_db, monkeypatch):
+async def test_dispatch_starts_one_run_per_head_base_title_and_body(druks_db, monkeypatch):
     start = mock.AsyncMock(return_value="run-1")
     monkeypatch.setattr(HouseRules, "start", staticmethod(start))
 
@@ -34,11 +34,13 @@ async def test_dispatch_starts_one_run_per_head_title_and_body(druks_db, monkeyp
     await (await Check.get(pr_number=7)).conclude("success")
     await HouseRules.dispatch(**HEAD)
     await HouseRules.dispatch(**{**HEAD, "title": "DRU-1 -- Add notes and gists"})
+    await HouseRules.dispatch(**{**HEAD, "base_branch": "release"})
 
-    assert start.await_count == 2
-    assert [check.title for check in await Check.all()] == [
-        "DRU-1 -- Add notes",
-        "DRU-1 -- Add notes and gists",
+    assert start.await_count == 3
+    assert [(check.title, check.base_branch) for check in await Check.all()] == [
+        ("DRU-1 -- Add notes", "main"),
+        ("DRU-1 -- Add notes and gists", "main"),
+        ("DRU-1 -- Add notes", "release"),
     ]
 
 
