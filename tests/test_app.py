@@ -9,12 +9,13 @@ import pytest
 from druks.core.services import Github
 from druks.prompts import render_prompt
 from druks.testing import run_workflow
+from druks.workspaces import RepoWorkspace
 from pydantic import ValidationError
 
 from druks_house_rules import app, hooks, pool
 from druks_house_rules.contracts import Nudge
 from druks_house_rules.models import Check
-from druks_house_rules.workflows import HouseRules
+from druks_house_rules.workflows import CheckWorkspace, HouseRules
 
 HEAD = {
     "repo": "acme/widgets",
@@ -24,6 +25,15 @@ HEAD = {
     "title": "DRU-1 -- Add notes",
     "body": "",
 }
+
+
+async def test_the_workspace_checks_out_the_head_commit(monkeypatch):
+    monkeypatch.setattr(RepoWorkspace, "setup", mock.AsyncMock())
+    workspace = CheckWorkspace(Check(**HEAD))
+
+    await workspace.setup()
+
+    assert workspace.branch == HEAD["head_sha"]
 
 
 async def test_dispatch_starts_one_run_per_head_base_title_and_body(druks_db, monkeypatch):

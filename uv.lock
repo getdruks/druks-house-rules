@@ -674,7 +674,7 @@ wheels = [
 [[package]]
 name = "druks"
 version = "0.12.0"
-source = { git = "https://github.com/czpython/druks?branch=main#7503bc9eb9d73a0d9a9d8cc3d40a2a04007bf8ba" }
+source = { git = "https://github.com/czpython/druks?branch=main#a9b055ca9c31c065203c8643be6f63b11cb7c019" }
 dependencies = [
     { name = "agent-client-protocol" },
     { name = "aiohttp" },
@@ -1251,8 +1251,8 @@ name = "httpcore2"
 version = "2.16.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "h11", marker = "python_full_version < '3.12' or python_full_version >= '3.15' or sys_platform != 'emscripten'" },
-    { name = "truststore", marker = "python_full_version < '3.12' or python_full_version >= '3.15' or sys_platform != 'emscripten'" },
+    { name = "h11" },
+    { name = "truststore" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/c0/61/afa9d6b7452f9eca73f73d45324eb0bb52f098fd5e6049bf6b8263be9b4e/httpcore2-2.16.0.tar.gz", hash = "sha256:c72cd0413563b17e1cd8354677dff887466f8ec2551679759e93126534428643", size = 69886, upload-time = "2026-10-21T07:09:45.31Z" }
 wheels = [
