@@ -9,6 +9,7 @@ import pytest
 from druks.core.services import Github
 from druks.prompts import render_prompt
 from druks.testing import run_workflow
+from druks.workspaces import RepoWorkspace
 from pydantic import ValidationError
 
 from druks_house_rules import app, hooks, pool
@@ -24,6 +25,17 @@ HEAD = {
     "title": "DRU-1 -- Add notes",
     "body": "",
 }
+
+
+async def test_the_workspace_clones_the_head_commit(monkeypatch):
+    ensure = mock.AsyncMock()
+    monkeypatch.setattr("druks.workspaces.checkout.ensure", ensure)
+    workspace = RepoWorkspace(Check(**HEAD))
+    workspace.host = mock.Mock(ssh_username="exedev")
+
+    await workspace.clone()
+
+    assert ensure.await_args.kwargs["ref"] == HEAD["head_sha"]
 
 
 async def test_dispatch_starts_one_run_per_head_base_title_and_body(druks_db, monkeypatch):

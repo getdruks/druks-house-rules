@@ -674,7 +674,7 @@ wheels = [
 [[package]]
 name = "druks"
 version = "0.12.0"
-source = { git = "https://github.com/czpython/druks?branch=main#7503bc9eb9d73a0d9a9d8cc3d40a2a04007bf8ba" }
+source = { git = "https://github.com/czpython/druks?branch=main#4a8d99d58cd105728ecaf172fae60b9282c95095" }
 dependencies = [
     { name = "agent-client-protocol" },
     { name = "aiohttp" },
@@ -689,6 +689,7 @@ dependencies = [
     { name = "fastapi" },
     { name = "fastmcp" },
     { name = "githubkit", extra = ["auth-app"] },
+    { name = "hishel", extra = ["async", "httpx2"] },
     { name = "httpx" },
     { name = "httpx2" },
     { name = "jinja2" },
@@ -1231,6 +1232,11 @@ httpx = [
     { name = "anyio" },
     { name = "anysqlite" },
     { name = "httpx" },
+]
+httpx2 = [
+    { name = "anyio" },
+    { name = "anysqlite" },
+    { name = "httpx2" },
 ]
 
 [[package]]

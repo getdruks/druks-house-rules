@@ -11,10 +11,6 @@ class HouseRules(Workflow):
     sandbox = Sandbox(setup="sandboxes/check.sh")
     workspace_class = RepoWorkspace
 
-    async def get_workspace_kwargs(self, host) -> dict:
-        check = await self.subject
-        return {**await super().get_workspace_kwargs(host), "branch": check.head_sha}
-
     async def run(self) -> None:
         check = await self.subject
         result = await self.exec(
