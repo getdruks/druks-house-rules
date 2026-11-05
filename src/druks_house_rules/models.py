@@ -18,6 +18,11 @@ class Check(StoredSubject):
     body: Mapped[str]
     conclusion: Mapped[str | None]
 
+    @property
+    def ref(self) -> str:
+        # RepoWorkspace checks out the subject's ref: the rules read the head, not main.
+        return self.head_sha
+
     def __str__(self) -> str:
         return f"{self.repo}#{self.pr_number} at {self.head_sha[:7]}"
 

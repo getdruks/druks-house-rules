@@ -6,18 +6,10 @@ from druks.workspaces import RepoWorkspace
 from .models import Check
 
 
-class CheckWorkspace(RepoWorkspace):
-    """The pull request's head commit, checked out for the rules."""
-
-    async def setup(self) -> None:
-        await super().setup()
-        self.branch = self.subject.head_sha
-
-
 class HouseRules(Workflow):
     subject = Check
     sandbox = Sandbox(setup="sandboxes/check.sh")
-    workspace_class = CheckWorkspace
+    workspace_class = RepoWorkspace
 
     async def run(self) -> None:
         check = await self.subject
