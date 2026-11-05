@@ -18,6 +18,12 @@ class Check(StoredSubject):
     body: Mapped[str]
     conclusion: Mapped[str | None]
 
+    @property
+    def ref(self) -> str:
+        # The workspace checks out the head commit itself, not the PR branch, which
+        # can move after the webhook.
+        return self.head_sha
+
     def __str__(self) -> str:
         return f"{self.repo}#{self.pr_number} at {self.head_sha[:7]}"
 
