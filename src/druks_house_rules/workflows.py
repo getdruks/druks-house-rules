@@ -31,7 +31,7 @@ class HouseRules(Workflow):
             ]
         )
         report = check.report(result)
-        await (await Github.get_client()).post_check_run(
+        await (await Github.get_client(check.repo)).post_check_run(
             check.repo,
             head_sha=check.head_sha,
             name="druks-house-rules",
