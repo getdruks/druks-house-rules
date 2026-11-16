@@ -131,12 +131,15 @@ async def test_nudge_prompt_is_the_cli_prompt():
     )
 
 
-@pytest.mark.parametrize(("entry", "phrase"), [(12, pool.ENTRIES[11]["phrase"]), (None, None)])
-async def test_the_implementer_hears_the_nudge(monkeypatch, entry, phrase):
-    nudge = mock.AsyncMock(return_value=Nudge(entry=entry, where=""))
+@pytest.mark.parametrize(
+    ("entry", "heard"),
+    [(12, f"{pool.ENTRIES[11]['phrase']}\n\nmodels.py adds a column."), (None, None)],
+)
+async def test_the_implementer_hears_the_nudge(monkeypatch, entry, heard):
+    nudge = mock.AsyncMock(return_value=Nudge(entry=entry, where="models.py adds a column."))
     monkeypatch.setattr(app.HouseRules, "nudge", nudge)
     workspace = mock.Mock(get_diff=mock.AsyncMock(return_value="+x = 1"))
 
-    assert await hooks.nudge(prompt="Add notes.", workspace=workspace) == phrase
+    assert await hooks.nudge(prompt="Add notes.", workspace=workspace) == heard
     nudge.assert_awaited_once_with(diff="+x = 1", task="Add notes.")
     assert hooks.implementer.id == "software_factory.implement"

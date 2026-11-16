@@ -124,7 +124,7 @@ def test_a_change_that_holds_gets_one_phrase_once(druks_repository, no_claude, m
 
     answer = plugin.run(stop(druks_repository.root, stop_hook_active=False))
 
-    assert answer == {"decision": "block", "reason": "Is that the simplest way?"}
+    assert answer == {"decision": "block", "reason": "Is that the simplest way?\n\nnotes.py"}
     assert asked == [("origin/main", "Add a notes reader.\n\nTest it.")]
     assert not plugin.run(stop(druks_repository.root, stop_hook_active=True))
 

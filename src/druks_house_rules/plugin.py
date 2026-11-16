@@ -97,7 +97,7 @@ def _stop(cwd: str, transcript: pathlib.Path, session_id: str) -> dict | None:
         return {"decision": "block", "reason": "\n".join(reason)}
     nudge = pool.nudge(root, base, _task(transcript)) if moved else None
     if nudge:
-        return {"decision": "block", "reason": nudge["phrase"]}
+        return {"decision": "block", "reason": f"{nudge['phrase']}\n\n{nudge['where']}"}
     return None
 
 
