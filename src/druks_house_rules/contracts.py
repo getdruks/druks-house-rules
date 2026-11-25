@@ -1,10 +1,10 @@
-from druks.agents import AgentOutput
+from druks.workflows import InstructionOutput
 from pydantic import Field
 
 from .pool import ENTRIES
 
 
-class Nudge(AgentOutput):
+class Nudge(InstructionOutput):
     """The nudge: the id of the pool entry whose situation the change shows,
     or null, and one sentence on where in the diff it shows."""
 
