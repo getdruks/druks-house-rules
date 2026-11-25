@@ -1,9 +1,9 @@
-from druks.agents import Agent
+from druks.workflows import Instruction
 from druks.workspaces import RepoWorkspace
 
 from .app import HouseRules
 
-implementer = Agent.get("software_factory.implement")
+implementer = Instruction.get("software_factory.implement")
 
 
 @implementer.after_agent

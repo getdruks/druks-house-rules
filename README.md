@@ -95,8 +95,8 @@ shows on the next, or nothing when no situation matches. The model runs
 through `claude -p`, like the moves pass. An entry id the pool does not hold
 exits 2.
 
-In Druks, the `house_rules.nudge` agent renders the same template on the
-harness and model the operator sets for it in the app's **Settings → Agents**.
+In Druks, the `house_rules.nudge` instruction renders the same template on the
+harness and model the operator sets for it in the app's **Settings → Instructions**.
 A workflow calls `HouseRules.nudge(diff=diff, task=task)` and gets a `Nudge`:
 `entry`, `phrase`, and `where`, with `entry` null when nothing fits. Each call
 records one `rule.hit` fact on the run: the entry id and the phrase, or `none`.
@@ -184,8 +184,8 @@ R21:
 R16:
   root: backend
   package: druks
-  author_surface: [druks.workflows, druks.workspaces, druks.agents, druks.events, druks.signals, druks.db, druks.schemas, druks.prompts, druks.durable, druks.apps, druks.ui, druks.webhooks]
-  public: [druks.workflows, druks.workspaces, druks.agents, druks.events, druks.signals, druks.db, druks.schemas, druks.prompts, druks.durable, druks.apps, druks.ui, druks.webhooks, druks.core, druks.chat]
+  author_surface: [druks.accounts, druks.workflows, druks.workspaces, druks.events, druks.signals, druks.db, druks.schemas, druks.prompts, druks.durable, druks.apps, druks.ui, druks.webhooks]
+  public: [druks.accounts, druks.workflows, druks.workspaces, druks.events, druks.signals, druks.db, druks.schemas, druks.prompts, druks.durable, druks.apps, druks.ui, druks.webhooks, druks.core, druks.chat]
   apps: [druks.contrib]
   # Imports the contract tolerates, as `importer -> imported` module globs.
   ignore_imports: ["druks.contrib.** -> druks.accounts.**"]
